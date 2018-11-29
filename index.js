@@ -36,8 +36,6 @@ if (!xlsxUrl || !currentPlatform || !language || !sheetsConfig) {
     process.exit(1);
 }
 
-const spinner = ora("Downloading xlsx file").start();
-
 const PlatformKey = {
     ios: "ios",
     android: "android",
@@ -59,8 +57,11 @@ const commonSpecialCharacters = [
 ];
 
 const xlsxBuffer = new streamBuffers.WritableStreamBuffer();
+const spinner = ora("Downloading xlsx file").start();
 
-(async () => {
+initiateFileDownload();
+
+function initiateFileDownload() {
     http.get(xlsxUrl, (response) => {
         response.on("data", (data) => {
             xlsxBuffer.write(data);
@@ -68,18 +69,20 @@ const xlsxBuffer = new streamBuffers.WritableStreamBuffer();
         response.on("end", () => {
             xlsxBuffer.end();
             spinner.succeed();
-            handleFile();
+            handleXlsxFile();
         });
+    }).on("error", (error) => {
+        spinner.fail(error.message);
     });
-})();
+}
 
-function handleFile() {
+function handleXlsxFile() {
     spinner.start("Making localization files");
-    const sheets = xlsx.parse(xlsxBuffer.getContents());
     try {
+        const sheets = xlsx.parse(xlsxBuffer.getContents());
         sheets
             .filter(isApplicationSheet)
-            .map(toExportInput)
+            .map(mergeSheetWithConfig)
             .forEach(exportStrings);
         spinner.succeed();
     } catch (error) {
@@ -95,16 +98,14 @@ function isApplicationSheet(sheet) {
     );
 }
 
-function toExportInput(sheet) {
+function mergeSheetWithConfig(sheet) {
     const config = sheetsConfig.find((sheetConfig) => {
         return sheetConfig.name === sheet.name;
     });
     return { ...sheet, config };
 }
 
-function exportStrings(sheet) {
-    const { output } = sheet.config;
-
+function transformSheetToLocalizations(sheet) {
     const keysColumn = keysColumnIndex(sheet, currentPlatform);
     const valuesColumn = valueColumnIndex(sheet, language);
     const allowDuplicatesColumn = columnIndexForHeader(
@@ -112,14 +113,13 @@ function exportStrings(sheet) {
         "allow_duplicates"
     );
     const descriptionsColumn = columnIndexForHeader(sheet, "description");
-    const outputFile = fs.createWriteStream(output);
 
     const sheetData = sheet.data
         .slice(1)
         .filter((row) => notEmptyValue(row, keysColumn))
         .filter((row) => notEmptyValue(row, valuesColumn));
 
-    const localizations = sheetData.map((row) => {
+    return sheetData.map((row) => {
         return {
             key: row[keysColumn],
             value: escape(replaceFormatSpecifiers(row[valuesColumn])),
@@ -127,30 +127,43 @@ function exportStrings(sheet) {
             description: row[descriptionsColumn]
         };
     });
+}
 
+function checkKeysDuplicatesInLocalizations(localizations) {
     const localizationKeys = localizations.map(
         (localization) => localization.key
     );
-    const localizationKeysDuplicates = duplicates(localizationKeys);
+    return duplicates(localizationKeys);
+}
 
+function checkValuesDuplicatesInLocalizations(localizations) {
     const localizationValues = localizations
         .filter((localization) => !localization.allowDuplicates)
         .map((localization) => localization.value);
+    return duplicates(localizationValues);
+}
 
-    const localizationValuesDuplicates = duplicates(localizationValues);
+function exportStrings(sheet) {
+    const { output } = sheet.config;
+    const localizations = transformSheetToLocalizations(sheet);
+    const keysDuplicates = checkKeysDuplicatesInLocalizations(localizations);
+    const valuesDuplicates = checkValuesDuplicatesInLocalizations(
+        localizations
+    );
 
-    if (localizationKeysDuplicates.length > 0) {
+    if (keysDuplicates.length > 0) {
         throw new Error(
-            `Found localization keys duplicates: ${localizationKeysDuplicates.join()}`
+            `Found localization keys duplicates: ${keysDuplicates.join()}`
         );
     }
 
-    if (localizationValuesDuplicates.length > 0) {
+    if (valuesDuplicates.length > 0) {
         spinner.warn(
-            `Found localization duplicates: ${localizationValuesDuplicates.join()}`
+            `Found localization duplicates: ${valuesDuplicates.join()}`
         );
     }
 
+    const outputFile = fs.createWriteStream(output);
     const exportInput = {
         localizations,
         outputFile
