@@ -1,0 +1,7 @@
+{
+    "eslint.run": "onType",
+    "eslint.autoFixOnSave": true,
+    "editor.formatOnSave": true,
+    "git.ignoreLimitWarning": true,
+    "javascript.validate.enable": false
+}

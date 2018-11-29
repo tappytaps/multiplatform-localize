@@ -1,0 +1,23 @@
+{
+    "ios": {
+        "formatSpecifiers": "none",
+        "specialCharacters": []
+    },
+    "android": {
+        "formatSpecifiers": {
+            "string": "s",
+            "integer": "d",
+            "double": "f"
+        },
+        "specialCharacters": {
+            "@": "\\@",
+            "?": "\\?",
+            "<": "\\<",
+            "'": "\\'"
+        }
+    },
+    "web": {
+        "formatSpecifiers": "automatic",
+        "specialCharacters": []
+    }
+}

@@ -1,0 +1,24 @@
+{
+    "name": "translation-tool",
+    "version": "1.0.0",
+    "description": "Generates platform specific string resources (iOS, Android and Web) from xlsx files.",
+    "main": "index.js",
+    "author": "",
+    "license": "ISC",
+    "bin": {
+        "stringsgen": "./index.js"
+    },
+    "devDependencies": {
+        "eslint": "^4.19.1",
+        "eslint-config-airbnb-base": "^12.1.0",
+        "eslint-config-prettier": "^2.10.0",
+        "eslint-plugin-import": "^2.14.0"
+    },
+    "dependencies": {
+        "fs-extra": "^7.0.1",
+        "node-xlsx": "^0.12.1",
+        "ora": "^3.0.0",
+        "stream-buffers": "^3.0.2",
+        "yargs": "^12.0.5"
+    }
+}

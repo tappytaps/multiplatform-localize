@@ -1,0 +1,15 @@
+{
+    "xlsxUrl": "some_url",
+    "platform": "ios",
+    "language": "eng",
+    "sheets": [
+        {
+            "name": "Sheet1",
+            "output": "/path/to/output/Localizable.strings"
+        },
+        {
+            "name": "Sheet2",
+            "output": "/path/to/output/Localizable2.strings"
+        }
+    ]
+}
