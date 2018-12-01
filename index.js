@@ -1,40 +1,21 @@
 #!/usr/bin/env node
 
-const xlsx = require("node-xlsx").default;
-const ora = require("ora");
-const streamBuffers = require("stream-buffers");
-const fs = require("fs-extra");
-const { argv } = require("yargs");
-
 const http = require("https");
+
+const fs = require("fs-extra");
+const ora = require("ora");
+const path = require("path");
+const rc = require("rc");
+const streamBuffers = require("stream-buffers");
+const xlsx = require("node-xlsx").default;
 
 const platforms = require("./platforms");
 
-const { configPath } = argv;
-
-if (!configPath) {
-    console.error("🙏 Please define --configPath");
-    process.exit(0);
-}
-
-if (!fs.existsSync(configPath)) {
-    console.error("🙏 Please define existing config file");
-    process.exit(0);
-}
-
-const {
-    xlsxUrl,
-    platform: currentPlatform,
-    language,
-    sheets: sheetsConfig
-} = fs.readJSONSync(configPath);
-
-if (!xlsxUrl || !currentPlatform || !language || !sheetsConfig) {
-    console.error(
-        "🙏 Config file should define xlsxUrl, platform, language, sheets"
-    );
-    process.exit(1);
-}
+const conf = rc("stringsgen", {
+    valuesColumnName: "value_en",
+    duplicatesColumnName: "allow_duplicates",
+    descriptionColumnName: "description"
+});
 
 const PlatformKey = {
     ios: "ios",
@@ -42,8 +23,27 @@ const PlatformKey = {
     web: "web"
 };
 
-const keysColumnHeaderPrefix = "key_";
-const valueColumnHeaderPrefix = "value_";
+if (
+    !conf.xlsxUrl ||
+    !conf.platform ||
+    !conf.keysColumnName ||
+    !conf.valuesColumnName ||
+    !conf.sheets
+) {
+    console.error(
+        "🙏 Config file should define xlsxUrl, platform, keysColumnName, valuesColumnName, sheets."
+    );
+    process.exit(1);
+}
+
+if (!Object.values(PlatformKey).includes(conf.platform)) {
+    console.error(
+        `😢 Unsopported platform. Supported platforms: ${Object.values(
+            PlatformKey
+        )}`
+    );
+    process.exit(1);
+}
 
 const commonSpecialCharacters = [
     {
@@ -62,7 +62,7 @@ const spinner = ora("Downloading xlsx file").start();
 initiateFileDownload();
 
 function initiateFileDownload() {
-    http.get(xlsxUrl, (response) => {
+    http.get(conf.xlsxUrl, (response) => {
         response.on("data", (data) => {
             xlsxBuffer.write(data);
         });
@@ -92,27 +92,30 @@ function handleXlsxFile() {
 
 function isApplicationSheet(sheet) {
     return (
-        sheetsConfig.find((sheetConfig) => {
+        conf.sheets.find((sheetConfig) => {
             return sheetConfig.name === sheet.name;
         }) !== undefined
     );
 }
 
 function mergeSheetWithConfig(sheet) {
-    const config = sheetsConfig.find((sheetConfig) => {
+    const config = conf.sheets.find((sheetConfig) => {
         return sheetConfig.name === sheet.name;
     });
     return { ...sheet, config };
 }
 
 function transformSheetToLocalizations(sheet) {
-    const keysColumn = keysColumnIndex(sheet, currentPlatform);
-    const valuesColumn = valueColumnIndex(sheet, language);
+    const keysColumn = columnIndexForHeader(sheet, conf.keysColumnName);
+    const valuesColumn = columnIndexForHeader(sheet, conf.valuesColumnName);
     const allowDuplicatesColumn = columnIndexForHeader(
         sheet,
-        "allow_duplicates"
+        conf.allowDuplicatesColumn
     );
-    const descriptionsColumn = columnIndexForHeader(sheet, "description");
+    const descriptionsColumn = columnIndexForHeader(
+        sheet,
+        conf.descriptionColumnName
+    );
 
     const sheetData = sheet.data
         .slice(1)
@@ -163,13 +166,15 @@ function exportStrings(sheet) {
         );
     }
 
-    const outputFile = fs.createWriteStream(output);
+    const outputFile = fs.createWriteStream(
+        path.resolve(process.cwd(), output)
+    );
     const exportInput = {
         localizations,
         outputFile
     };
 
-    switch (currentPlatform) {
+    switch (conf.platform) {
         case PlatformKey.ios:
             exportAsStringsFile(exportInput);
             break;
@@ -185,7 +190,7 @@ function exportStrings(sheet) {
 }
 
 function replaceFormatSpecifiers(text) {
-    const { formatSpecifiers } = platforms[currentPlatform];
+    const { formatSpecifiers } = platforms[conf.platform];
     if (formatSpecifiers === "none") {
         return text;
     }
@@ -210,7 +215,7 @@ function replaceFormatSpecifiers(text) {
 
 function escape(text) {
     const { specialCharacters: platformSpecialCharactersMap } = platforms[
-        currentPlatform
+        conf.platform
     ];
     const platformSpecialCharacters = Object.keys(
         platformSpecialCharactersMap
@@ -277,26 +282,8 @@ function exportAsJson({ localizations, outputFile }) {
     outputFile.write("}");
 }
 
-function keysColumnIndex(sheet, p) {
-    const header = keyHeaderForPlatform(p);
-    return columnIndexForHeader(sheet, header);
-}
-
-function valueColumnIndex(sheet, lang) {
-    const header = valueHeaderForPlatform(lang);
-    return columnIndexForHeader(sheet, header);
-}
-
 function columnIndexForHeader(sheet, header) {
     return sheet.data[0].findIndex((cellContent) => cellContent === header);
-}
-
-function keyHeaderForPlatform(p) {
-    return `${keysColumnHeaderPrefix}${p}`;
-}
-
-function valueHeaderForPlatform(p) {
-    return `${valueColumnHeaderPrefix}${p}`;
 }
 
 function count(values) {

@@ -1,5 +1,5 @@
 {
-    "name": "translation-tool",
+    "name": "@tappytaps/translation-tool",
     "version": "1.0.0",
     "description": "Generates platform specific string resources (iOS, Android and Web) from xlsx files.",
     "main": "index.js",
@@ -18,6 +18,7 @@
         "fs-extra": "^7.0.1",
         "node-xlsx": "^0.12.1",
         "ora": "^3.0.0",
+        "rc": "^1.2.8",
         "stream-buffers": "^3.0.2",
         "yargs": "^12.0.5"
     }
