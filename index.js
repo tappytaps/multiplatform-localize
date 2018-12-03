@@ -13,7 +13,7 @@ const platforms = require("./platforms");
 
 const conf = rc("stringsgen", {
     valuesColumnName: "value_en",
-    duplicatesColumnName: "allow_duplicates",
+    allowDuplicatesColumnName: "allow_duplicates",
     descriptionColumnName: "description"
 });
 
@@ -110,7 +110,7 @@ function transformSheetToLocalizations(sheet) {
     const valuesColumn = columnIndexForHeader(sheet, conf.valuesColumnName);
     const allowDuplicatesColumn = columnIndexForHeader(
         sheet,
-        conf.allowDuplicatesColumn
+        conf.allowDuplicatesColumnName
     );
     const descriptionsColumn = columnIndexForHeader(
         sheet,
