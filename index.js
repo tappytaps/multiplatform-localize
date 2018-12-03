@@ -12,6 +12,7 @@ const xlsx = require("node-xlsx").default;
 const platforms = require("./platforms");
 
 const conf = rc("stringsgen", {
+    idColumnName: "id",
     valuesColumnName: "value_en",
     allowDuplicatesColumnName: "allow_duplicates",
     descriptionColumnName: "description"
@@ -80,10 +81,11 @@ function handleXlsxFile() {
     spinner.start("Making localization files");
     try {
         const sheets = xlsx.parse(xlsxBuffer.getContents());
-        sheets
+        const applicationSheets = sheets
             .filter(isApplicationSheet)
-            .map(mergeSheetWithConfig)
-            .forEach(exportStrings);
+            .map(mergeSheetWithConfig);
+        checkForDuplicates(applicationSheets);
+        applicationSheets.forEach(exportStrings);
         spinner.succeed();
     } catch (error) {
         spinner.fail(error.message);
@@ -98,6 +100,34 @@ function isApplicationSheet(sheet) {
     );
 }
 
+function checkForDuplicates(sheets) {
+    const localizations = sheets
+        .map(transformSheetToLocalizations)
+        .reduce((a, b) => a.concat(b), []);
+
+    const idsDuplicates = checkIdsDuplicatesInLocalizations(localizations);
+    const keysDuplicates = checkKeysDuplicatesInLocalizations(localizations);
+    const valuesDuplicates = checkValuesDuplicatesInLocalizations(
+        localizations
+    );
+
+    if (idsDuplicates.length > 0) {
+        throw new Error(`Found id duplicates: ${idsDuplicates.join()}`);
+    }
+
+    if (keysDuplicates.length > 0) {
+        throw new Error(
+            `Found localization keys duplicates: ${keysDuplicates.join()}`
+        );
+    }
+
+    if (valuesDuplicates.length > 0) {
+        spinner.warn(
+            `Found localization duplicates: ${valuesDuplicates.join()}`
+        );
+    }
+}
+
 function mergeSheetWithConfig(sheet) {
     const config = conf.sheets.find((sheetConfig) => {
         return sheetConfig.name === sheet.name;
@@ -106,6 +136,7 @@ function mergeSheetWithConfig(sheet) {
 }
 
 function transformSheetToLocalizations(sheet) {
+    const idColumn = columnIndexForHeader(sheet, conf.idColumnName);
     const keysColumn = columnIndexForHeader(sheet, conf.keysColumnName);
     const valuesColumn = columnIndexForHeader(sheet, conf.valuesColumnName);
     const allowDuplicatesColumn = columnIndexForHeader(
@@ -124,12 +155,20 @@ function transformSheetToLocalizations(sheet) {
 
     return sheetData.map((row) => {
         return {
+            id: row[idColumn],
             key: row[keysColumn],
             value: escape(replaceFormatSpecifiers(row[valuesColumn])),
             allowDuplicates: row[allowDuplicatesColumn] || false,
             description: row[descriptionsColumn]
         };
     });
+}
+
+function checkIdsDuplicatesInLocalizations(localizations) {
+    const localizationIds = localizations.map(
+        (localization) => localization.id
+    );
+    return duplicates(localizationIds);
 }
 
 function checkKeysDuplicatesInLocalizations(localizations) {
@@ -149,22 +188,6 @@ function checkValuesDuplicatesInLocalizations(localizations) {
 function exportStrings(sheet) {
     const { output } = sheet.config;
     const localizations = transformSheetToLocalizations(sheet);
-    const keysDuplicates = checkKeysDuplicatesInLocalizations(localizations);
-    const valuesDuplicates = checkValuesDuplicatesInLocalizations(
-        localizations
-    );
-
-    if (keysDuplicates.length > 0) {
-        throw new Error(
-            `Found localization keys duplicates: ${keysDuplicates.join()}`
-        );
-    }
-
-    if (valuesDuplicates.length > 0) {
-        spinner.warn(
-            `Found localization duplicates: ${valuesDuplicates.join()}`
-        );
-    }
 
     const outputFile = fs.createWriteStream(
         path.resolve(process.cwd(), output)
