@@ -41,7 +41,8 @@ You provide your configuration via .stringsgenrc file.
     "keysColumnName": "key_ios",
     "valuesColumnName": "value_en",
     "allowDuplicatesColumnName": "allow_duplicates",
-    "descriptionColumnName": "description"
+    "descriptionColumnName": "description",
+    "isHtmlColumnName": "is_html",
     "sheets": [
         {
             "name": "Sheet1",
@@ -66,3 +67,4 @@ The sample spreadsheet contains prepared autoincrement id generator. If you want
 -   `valuesColumnName` => String value. Don't has to be unique, but the strings generator will warn your if there are any duplicates.
 -   `allowDuplicatesColumnName` => If the column contains **TRUE**, the strings generator will not show warnings for duplicate in `valuesColumnName` column for given string.
 -   `descriptionColumnName` => Description for string value, if needed.
+-   `isHtmlColumnName` => If the column contains **TRUE**, the strings generator will handle a string value in special way (Android).

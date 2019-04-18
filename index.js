@@ -15,7 +15,8 @@ const conf = rc("stringsgen", {
     idColumnName: "id",
     valuesColumnName: "value_en",
     allowDuplicatesColumnName: "allow_duplicates",
-    descriptionColumnName: "description"
+    descriptionColumnName: "description",
+    isHtmlColumnName: "is_html"
 });
 
 const PlatformKey = {
@@ -147,6 +148,7 @@ function transformSheetToLocalizations(sheet) {
         sheet,
         conf.descriptionColumnName
     );
+    const isHtmlColumn = columnIndexForHeader(sheet, conf.isHtmlColumnName);
 
     const sheetData = sheet.data
         .slice(1)
@@ -154,10 +156,19 @@ function transformSheetToLocalizations(sheet) {
         .filter((row) => notEmptyValue(row, valuesColumn));
 
     return sheetData.map((row) => {
+        const isHtml = row[isHtmlColumn] || false;
+        const rowValue = row[valuesColumn];
+        console.log(isHtml);
+        let escapedValue;
+        if (conf.platform === PlatformKey.android && isHtml) {
+            escapedValue = `<![CDATA[${rowValue}]]>`;
+        } else {
+            escapedValue = escape(replaceFormatSpecifiers(rowValue));
+        }
         return {
             id: row[idColumn],
             key: row[keysColumn],
-            value: escape(replaceFormatSpecifiers(row[valuesColumn])),
+            value: escapedValue,
             allowDuplicates: row[allowDuplicatesColumn] || false,
             description: row[descriptionsColumn]
         };
