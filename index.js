@@ -158,7 +158,6 @@ function transformSheetToLocalizations(sheet) {
     return sheetData.map((row) => {
         const isHtml = row[isHtmlColumn] || false;
         const rowValue = row[valuesColumn];
-        console.log(isHtml);
         let escapedValue;
         if (conf.platform === PlatformKey.android && isHtml) {
             escapedValue = `<![CDATA[${rowValue}]]>`;
