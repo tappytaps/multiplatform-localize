@@ -36,14 +36,11 @@ program.parse(process.argv);
 //
 
 async function runGenerateStrings() {
-    conf.validate();
     await commands.generateStrings();
 }
 async function runUploadStrings() {
-    conf.validate();
     await commands.uploadStrings();
 }
 async function runDownloadStrings() {
-    conf.validate();
     await commands.downloadStrings();
 }

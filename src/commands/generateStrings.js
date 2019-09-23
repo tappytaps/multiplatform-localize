@@ -11,6 +11,8 @@ const files = require("../files");
 const spinner = ora();
 
 module.exports = async function generateStrings() {
+    conf.validate();
+
     try {
         const strings = await _downloadStrings();
         _exportStrings(strings);

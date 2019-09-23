@@ -3,7 +3,6 @@ const ora = require("ora");
 const conf = require("../config");
 const xlsx = require("../xlsx");
 const files = require("../files");
-const PlatformKey = require("../PlatformKey");
 const { oneSkyClient } = require("../onesky");
 const { prepareStringValueForPlatform } = require("../strings");
 const { getPlatformStringsFromSheets } = require("../sheets");
@@ -11,6 +10,7 @@ const { getPlatformStringsFromSheets } = require("../sheets");
 const spinner = ora();
 
 module.exports = async function downloadStrings() {
+    conf.validate();
     conf.validateOneSkyConfiguration();
 
     try {
