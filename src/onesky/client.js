@@ -11,11 +11,7 @@ module.exports = {
     getFile
 };
 
-const commonOptions = {
-    secret: conf.oneSky.secret,
-    apiKey: conf.oneSky.apiKey,
-    projectId: conf.oneSky.projectId
-};
+const commonOptions = conf.oneSky || {};
 
 async function uploadTranslations(translations) {
     const options = {
