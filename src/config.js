@@ -10,7 +10,7 @@ const conf = rc("stringsgen", {
     allowDuplicatesColumnName: "allow_duplicates",
     descriptionColumnName: "description",
     isHtmlColumnName: "is_html",
-    developmentLanguage: "en"
+    baseLanguage: "en"
 });
 
 function validate() {

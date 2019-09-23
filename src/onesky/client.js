@@ -16,11 +16,11 @@ const commonOptions = conf.oneSky || {};
 async function uploadTranslations(translations) {
     const options = {
         ...commonOptions,
-        language: conf.developmentLanguage,
+        language: conf.baseLanguage,
         fileName: "translations.json",
         format: "HIERARCHICAL_JSON",
         content: JSON.stringify(translations),
-        keepStrings: false
+        keepStrings: true
     };
     await onesky.postFile(options);
 }
@@ -28,7 +28,7 @@ async function uploadTranslations(translations) {
 async function uploadStringsdict(content, fileName) {
     const options = {
         ...commonOptions,
-        language: conf.developmentLanguage,
+        language: conf.baseLanguage,
         format: "IOS_STRINGSDICT_XML",
         content,
         fileName,
@@ -40,7 +40,7 @@ async function uploadStringsdict(content, fileName) {
 async function uploadAndroidXml(content, fileName) {
     const options = {
         ...commonOptions,
-        language: conf.developmentLanguage,
+        language: conf.baseLanguage,
         format: "ANDROID_XML",
         content,
         fileName,

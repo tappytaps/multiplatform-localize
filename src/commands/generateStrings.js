@@ -44,7 +44,7 @@ async function _downloadStrings() {
 
 function _exportStrings(strings) {
     spinner.start("Exporting strings file");
-    files.exportStrings(strings, conf.developmentLanguage);
+    files.exportStrings(strings, conf.baseLanguage);
     spinner.succeed();
 }
 
@@ -61,7 +61,7 @@ async function _exportPluralsStringsIfNeeded() {
         await files.exportFile(
             pluralsFileContent,
             pluralsFileName,
-            conf.developmentLanguage
+            conf.baseLanguage
         );
     }
 

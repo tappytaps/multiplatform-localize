@@ -55,7 +55,7 @@ You provide your configuration via .stringsgenrc file.
     "allowDuplicatesColumnName": "allow_duplicates",
     "descriptionColumnName": "description",
     "isHtmlColumnName": "is_html",
-    "developmentLanguage": "en",
+    "baseLanguage": "en",
     "sheets": ["Sheet1", "Sheet2"],
     "outputDir": ".",
     "outputName": "Localizable.strings",
