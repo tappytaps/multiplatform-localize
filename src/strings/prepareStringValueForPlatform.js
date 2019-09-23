@@ -1,4 +1,6 @@
 const PlatformConfig = require("../PlatformConfig");
+const PlatformKey = require("../PlatformKey");
+const conf = require("../config");
 
 const commonSpecialCharacters = [
     {
@@ -11,8 +13,16 @@ const commonSpecialCharacters = [
     }
 ];
 
-module.exports = function prepareValueForPlatform(value, platform) {
-    return escape(replaceFormatSpecifiers(value, platform), platform);
+module.exports = function prepareStringValueForPlatform(
+    value,
+    platform,
+    isHtml = false
+) {
+    let newValue = value;
+    if (conf.platform === PlatformKey.android && isHtml) {
+        newValue = `<![CDATA[${value}]]>`;
+    }
+    return escape(replaceFormatSpecifiers(newValue, platform), platform);
 };
 
 function replaceFormatSpecifiers(text, platform) {

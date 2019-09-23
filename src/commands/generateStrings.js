@@ -2,8 +2,8 @@ const ora = require("ora");
 
 const conf = require("../config");
 const xlsx = require("../xlsx");
-const { prepareLocalizationsFromSheets } = require("../sheet-utils");
-const { prepareValueForPlatform } = require("../strings-utils");
+const { getPlatformStringsFromSheets } = require("../sheets");
+const { prepareStringValueForPlatform } = require("../strings");
 const { exportStrings } = require("../files");
 
 const spinner = ora();
@@ -17,19 +17,18 @@ module.exports = async function generateStrings() {
         spinner.start("Making localization files");
 
         const sheets = xlsx.parse(xlsxBuffer);
-        const localizations = prepareLocalizationsFromSheets(
-            sheets,
-            (duplicates) => spinner.warn(duplicates)
-        ).map((localization) => {
+        const strings = getPlatformStringsFromSheets(sheets, (duplicates) =>
+            spinner.warn(duplicates)
+        ).map((string) => {
             return {
-                ...localization,
-                value: prepareValueForPlatform(
-                    localization.value,
+                ...string,
+                value: prepareStringValueForPlatform(
+                    string.value,
                     conf.platform
                 )
             };
         });
-        exportStrings(localizations, conf.developmentLanguage);
+        exportStrings(strings, conf.developmentLanguage);
         spinner.succeed();
     } catch (error) {
         spinner.fail(error.message);

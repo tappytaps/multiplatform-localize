@@ -1,27 +1,4 @@
-const transformSheetToLocalizations = require("./transformSheetToLocalizations");
-const conf = require("../config");
-
-module.exports = function prepareLocalizationsFromSheets(
-    sheets,
-    { warningLogger = undefined, validate = true }
-) {
-    const localizations = sheets
-        .filter(isApplicationSheet)
-        .map(transformSheetToLocalizations)
-        .reduce((a, b) => a.concat(b), []);
-
-    if (validate) {
-        checkForDuplicates(localizations, warningLogger);
-    }
-
-    return localizations;
-};
-
-function isApplicationSheet(sheet) {
-    return conf.sheets.includes(sheet.name);
-}
-
-function checkForDuplicates(localizations, warningLogger) {
+module.exports = function checkForDuplicates(localizations, warningLogger) {
     const idsDuplicates = checkIdsDuplicatesInLocalizations(localizations);
     const keysDuplicates = checkKeysDuplicatesInLocalizations(localizations);
     const valuesDuplicates = checkValuesDuplicatesInLocalizations(
@@ -43,7 +20,7 @@ function checkForDuplicates(localizations, warningLogger) {
             `Found localization duplicates: ${valuesDuplicates.join()}`
         );
     }
-}
+};
 
 function checkIdsDuplicatesInLocalizations(localizations) {
     const localizationIds = localizations.map(

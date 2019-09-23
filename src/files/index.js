@@ -1,3 +1,4 @@
 module.exports = {
-    exportStrings: require("./exportStrings")
+    exportStrings: require("./exportStrings"),
+    exportFile: require("./exportFile")
 };

@@ -26,7 +26,19 @@ $ code .stringsgenrc
 Run strings generator:
 
 ```
-$ stringsgen
+$ stringsgen gen
+```
+
+Upload strings to OneSky:
+
+```
+$ stringsgen up
+```
+
+Download translated strings from OneSky:
+
+```
+$ stringsgen down
 ```
 
 # Configuration
@@ -43,12 +55,16 @@ You provide your configuration via .stringsgenrc file.
     "allowDuplicatesColumnName": "allow_duplicates",
     "descriptionColumnName": "description",
     "isHtmlColumnName": "is_html",
-    "sheets": [
-        {
-            "name": "Sheet1",
-            "output": "en.lproj/Sheet1.strings"
-        }
-    ]
+    "developmentLanguage": "en",
+    "sheets": ["Sheet1", "Sheet2"],
+    "outputDir": ".",
+    "outputName": "Localizable.strings",
+    "inputPlurals": "Localizable.stringsdict",
+    "oneSky": {
+        "secret": "TOP_SECRET",
+        "apiKey": "YOUR_API_KEY",
+        "projectId": "YOUR_PROJECT_ID"
+    }
 }
 ```
 
