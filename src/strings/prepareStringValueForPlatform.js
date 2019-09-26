@@ -18,11 +18,10 @@ module.exports = function prepareStringValueForPlatform(
     platform,
     isHtml = false
 ) {
-    let newValue = value;
     if (platform === PlatformKey.android && isHtml) {
-        newValue = `<![CDATA[${value}]]>`;
+        return replaceFormatSpecifiers(`<![CDATA[${value}]]>`, platform);
     }
-    return escape(replaceFormatSpecifiers(newValue, platform), platform);
+    return escape(replaceFormatSpecifiers(value, platform), platform);
 };
 
 function replaceFormatSpecifiers(text, platform) {
