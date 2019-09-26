@@ -33,7 +33,11 @@ async function _downloadStrings() {
     }).map((string) => {
         return {
             ...string,
-            value: prepareStringValueForPlatform(string.value, conf.platform)
+            value: prepareStringValueForPlatform(
+                string.value,
+                conf.platform,
+                string.isHtml
+            )
         };
     });
 

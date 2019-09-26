@@ -19,7 +19,7 @@ module.exports = function prepareStringValueForPlatform(
     isHtml = false
 ) {
     let newValue = value;
-    if (conf.platform === PlatformKey.android && isHtml) {
+    if (platform === PlatformKey.android && isHtml) {
         newValue = `<![CDATA[${value}]]>`;
     }
     return escape(replaceFormatSpecifiers(newValue, platform), platform);
