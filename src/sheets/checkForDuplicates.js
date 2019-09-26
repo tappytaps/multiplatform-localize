@@ -8,13 +8,11 @@ module.exports = function checkForDuplicates(localizations, warningLogger) {
     if (idsDuplicates.length > 0) {
         throw new Error(`Found id duplicates: ${idsDuplicates.join()}`);
     }
-
     if (keysDuplicates.length > 0) {
         throw new Error(
             `Found localization keys duplicates: ${keysDuplicates.join()}`
         );
     }
-
     if (valuesDuplicates.length > 0 && warningLogger) {
         warningLogger(
             `Found localization duplicates: ${valuesDuplicates.join()}`

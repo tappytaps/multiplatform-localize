@@ -17,7 +17,7 @@ module.exports = async function uploadStrings() {
         await _uploadStrings();
         await _uploadPluralsIfNeeded();
     } catch (error) {
-        spinner.fail(JSON.stringify(error));
+        spinner.fail(error);
     }
 };
 
@@ -29,15 +29,17 @@ async function _uploadStrings() {
 
     spinner.succeed();
 
-    const strings = getOneSkyStringsFromSheets(sheets, (duplicates) =>
-        spinner.warn(duplicates)
-    );
+    const strings = getOneSkyStringsFromSheets(sheets, {
+        warningLogger: (duplicates) => spinner.warn(duplicates)
+    });
 
     spinner.start("Uploading strings to OneSky");
 
-    const stringsForLocalization = strings.map((string) => {
-        return { [string.id]: string.value };
-    });
+    const stringsForLocalization = strings.reduce(
+        (obj, string) => Object.assign(obj, { [string.id]: string.value }),
+        {}
+    );
+
     await oneSkyClient.uploadTranslations(stringsForLocalization);
 
     spinner.succeed();

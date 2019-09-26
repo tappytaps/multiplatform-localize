@@ -18,7 +18,7 @@ module.exports = async function generateStrings() {
         _exportStrings(strings);
         _exportPluralsStringsIfNeeded();
     } catch (error) {
-        spinner.fail(error.message);
+        spinner.fail(error);
     }
 };
 
@@ -28,9 +28,9 @@ async function _downloadStrings() {
     const xlsxBuffer = await xlsx.download(conf.xlsxUrl);
     const sheets = xlsx.parse(xlsxBuffer);
 
-    const strings = getPlatformStringsFromSheets(sheets, (duplicates) =>
-        spinner.warn(duplicates)
-    ).map((string) => {
+    const strings = getPlatformStringsFromSheets(sheets, {
+        warningLogger: (duplicates) => spinner.warn(duplicates)
+    }).map((string) => {
         return {
             ...string,
             value: prepareStringValueForPlatform(string.value, conf.platform)
@@ -49,9 +49,9 @@ function _exportStrings(strings) {
 }
 
 async function _exportPluralsStringsIfNeeded() {
-    spinner.start("Exporting plurals strings file");
-
     if (!conf.hasPlurals()) return;
+
+    spinner.start("Exporting plurals strings file");
 
     const pluralsPath = conf.getPluralsPath();
     const pluralsFileName = conf.getPluralsFileName();

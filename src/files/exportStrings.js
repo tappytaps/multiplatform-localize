@@ -5,26 +5,8 @@ const PlatformKey = require("../PlatformKey");
 const conf = require("../config");
 
 module.exports = function exportStrings(localizations, language) {
-    let outputSubDir;
-
-    switch (conf.platform) {
-        case PlatformKey.ios:
-            outputSubDir = `${language}.lproj`;
-            break;
-        case PlatformKey.android:
-            outputSubDir = `values_${language}`;
-            break;
-        case PlatformKey.web:
-            outputSubDir = `${language}`;
-            break;
-        default:
-            break;
-    }
-
-    const outputFilePath = path.resolve(
-        process.cwd(),
-        conf.outputDir,
-        outputSubDir,
+    const outputFilePath = path.join(
+        conf.getOutputDirPath(language),
         conf.outputName
     );
 

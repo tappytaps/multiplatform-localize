@@ -89,7 +89,11 @@ function getOutputDirPath(language) {
             outputSubDir = `${language}.lproj`;
             break;
         case PlatformKey.android:
-            outputSubDir = `values_${language}`;
+            if (language === conf.baseLanguage) {
+                outputSubDir = "values";
+            } else {
+                outputSubDir = `values-${language}`;
+            }
             break;
         case PlatformKey.web:
             outputSubDir = `${language}`;
