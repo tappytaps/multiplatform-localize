@@ -71,5 +71,10 @@ async function getFile(language, fileName) {
         fileName,
         language
     };
-    return onesky.getFile(options);
+    try {
+        const file = await onesky.getFile(options);
+        return file;
+    } catch (error) {
+        throw new Error(JSON.stringify(error));
+    }
 }

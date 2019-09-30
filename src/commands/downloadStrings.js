@@ -54,10 +54,10 @@ async function _downloadLocalizedStrings(originalStrings, languages) {
 
         const file = await oneSkyClient.getTranslationsFile(language);
         const localizations = Object.keys(file)
-            .map((key) => file[key])
-            .map((translation) => {
-                const id = Object.keys(translation)[0];
-                const value = Object.values(translation)[0];
+            .map((translationId) => {
+                // console.log(translation);
+                const id = translationId;
+                const value = file[translationId];
                 return { id, value };
             })
             .map((localizedString) => {
