@@ -1,15 +1,21 @@
 const PlatformConfig = require("../PlatformConfig");
 const PlatformKey = require("../PlatformKey");
-const conf = require("../config");
 
 const commonSpecialCharacters = [
     {
         expression: /\\(?!n|r|\s)/,
-        replace: "\\\\"
+        replacement: "\\\\"
     },
     {
         expression: /"/,
-        replace: '\\"'
+        replacement: '\\"'
+    }
+];
+
+const cdataSpecialCharacters = [
+    {
+        expression: /'/,
+        replacement: "\\'"
     }
 ];
 
@@ -19,9 +25,15 @@ module.exports = function prepareStringValueForPlatform(
     isHtml = false
 ) {
     if (platform === PlatformKey.android && isHtml) {
-        return replaceFormatSpecifiers(`<![CDATA[${value}]]>`, platform);
+        return replaceFormatSpecifiers(
+            `<![CDATA[${excapeForCdata(value)}]]>`,
+            platform
+        );
     }
-    return escape(replaceFormatSpecifiers(value, platform), platform);
+    return escapeForPlatform(
+        replaceFormatSpecifiers(value, platform),
+        platform
+    );
 };
 
 function replaceFormatSpecifiers(text, platform) {
@@ -48,7 +60,7 @@ function replaceFormatSpecifiers(text, platform) {
         .replace(/(%)(\d\$)?f/g, `$1$2${formatSpecifiers.double}`);
 }
 
-function escape(text, platform) {
+function escapeForPlatform(text, platform) {
     const { specialCharacters: platformSpecialCharactersMap } = PlatformConfig[
         platform
     ];
@@ -57,18 +69,25 @@ function escape(text, platform) {
     ).map((key) => {
         return {
             expression: new RegExp(`\\${key}`),
-            replace: platformSpecialCharactersMap[key]
+            replacement: platformSpecialCharactersMap[key]
         };
     });
     const allSpecialCharacters = commonSpecialCharacters.concat(
         platformSpecialCharacters
     );
+    return escape(text, allSpecialCharacters);
+}
 
+function excapeForCdata(text) {
+    return escape(text, cdataSpecialCharacters);
+}
+
+function escape(text, characters) {
     let updatedText = text;
-    for (const character of allSpecialCharacters) {
+    for (const character of characters) {
         updatedText = updatedText.replace(
             new RegExp(character.expression, "g"),
-            character.replace
+            character.replacement
         );
     }
     return updatedText;
