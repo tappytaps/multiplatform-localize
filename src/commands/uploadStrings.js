@@ -67,7 +67,10 @@ async function _uploadPluralsIfNeeded() {
                 );
                 break;
             case PlatformKey.web:
-                // TODO
+                await oneSkyClient.uploadHierarchicalJson(
+                    pluralsContent,
+                    pluralsFileName
+                );
                 break;
             default:
                 break;

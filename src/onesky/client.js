@@ -6,6 +6,7 @@ module.exports = {
     uploadTranslations,
     uploadStringsdict,
     uploadAndroidXml,
+    uploadHierarchicalJson,
     getLanguages,
     getTranslationsFile,
     getFile
@@ -49,6 +50,18 @@ async function uploadAndroidXml(content, fileName) {
     await onesky.postFile(options);
 }
 
+async function uploadHierarchicalJson(content, fileName) {
+    const options = {
+        ...commonOptions,
+        language: conf.baseLanguage,
+        format: "I18NEXT_HIERARCHICAL_JSON",
+        content,
+        fileName,
+        keepStrings: false
+    };
+    await onesky.postFile(options);
+}
+
 async function getLanguages() {
     const options = {
         ...commonOptions
@@ -62,7 +75,10 @@ async function getLanguages() {
 
 async function getTranslationsFile(language) {
     const translations = await getFile(language, "translations.json");
-    return JSON.parse(translations);
+    if (translations) {
+        return JSON.parse(translations);
+    }
+    return null;
 }
 
 async function getFile(language, fileName) {

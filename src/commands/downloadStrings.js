@@ -53,34 +53,37 @@ async function _downloadLocalizedStrings(originalStrings, languages) {
         spinner.start(`Downloading localized strings for: ${language}`);
 
         const file = await oneSkyClient.getTranslationsFile(language);
-        const localizations = Object.keys(file)
-            .map((translationId) => {
-                // console.log(translation);
-                const id = translationId;
-                const value = file[translationId];
-                return { id, value };
-            })
-            .map((localizedString) => {
-                const originalString = originalStrings.find((s) => {
-                    return String(s.id) === String(localizedString.id);
-                });
-                if (!originalString) {
-                    return null;
-                }
-                const { key, isHtml } = originalString;
-                return {
-                    key,
-                    value: prepareStringValueForPlatform(
-                        localizedString.value,
-                        conf.platform,
-                        isHtml
-                    )
-                };
-            })
-            .filter((s) => s != null);
 
-        files.exportStrings(localizations, language);
-        spinner.succeed();
+        if (file) {
+            const localizations = Object.keys(file)
+                .map((translationId) => {
+                    // console.log(translation);
+                    const id = translationId;
+                    const value = file[translationId];
+                    return { id, value };
+                })
+                .map((localizedString) => {
+                    const originalString = originalStrings.find((s) => {
+                        return String(s.id) === String(localizedString.id);
+                    });
+                    if (!originalString) {
+                        return null;
+                    }
+                    const { key, isHtml } = originalString;
+                    return {
+                        key,
+                        value: prepareStringValueForPlatform(
+                            localizedString.value,
+                            conf.platform,
+                            isHtml
+                        )
+                    };
+                })
+                .filter((s) => s != null);
+
+            files.exportStrings(localizations, language);
+            spinner.succeed();
+        }
     }
 }
 
