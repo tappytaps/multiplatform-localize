@@ -1,5 +1,3 @@
-const conf = require("../config");
-
 const sheetParser = require("./sheet-parser");
 const checkForDuplicates = require("./checkForDuplicates");
 
@@ -10,7 +8,7 @@ function getPlatformStringsFromSheets(
     { warningLogger = undefined, validate = true }
 ) {
     const strings = sheets
-        .filter(isApplicationSheet)
+        .filter(isStringsSheet)
         .map(sheetParser.transformSheetToPlatformStrings)
         .reduce((a, b) => a.concat(b), []);
 
@@ -26,7 +24,7 @@ function getOneSkyStringsFromSheets(
     { warningLogger = undefined, validate = true }
 ) {
     const strings = sheets
-        .filter(isApplicationSheet)
+        .filter(isStringsSheet)
         .map(sheetParser.transformSheetToOneSkyStrings)
         .reduce((a, b) => a.concat(b), []);
 
@@ -37,6 +35,6 @@ function getOneSkyStringsFromSheets(
     return strings;
 }
 
-function isApplicationSheet(sheet) {
-    return conf.sheets.includes(sheet.name);
+function isStringsSheet(sheet) {
+    return sheet.name !== "max";
 }

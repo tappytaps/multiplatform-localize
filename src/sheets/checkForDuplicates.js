@@ -4,6 +4,7 @@ module.exports = function checkForDuplicates(localizations, warningLogger) {
     const valuesDuplicates = checkValuesDuplicatesInLocalizations(
         localizations
     );
+    const stringsWithBothValues = checkBothValues(localizations);
 
     if (idsDuplicates.length > 0) {
         throw new Error(`Found id duplicates: ${idsDuplicates.join()}`);
@@ -16,6 +17,11 @@ module.exports = function checkForDuplicates(localizations, warningLogger) {
     if (valuesDuplicates.length > 0 && warningLogger) {
         warningLogger(
             `Found localization duplicates: ${valuesDuplicates.join()}`
+        );
+    }
+    if (stringsWithBothValues.length > 0 && warningLogger) {
+        warningLogger(
+            `Found strings with common and app specific values: ${stringsWithBothValues.join()}`
         );
     }
 };
@@ -39,6 +45,12 @@ function checkValuesDuplicatesInLocalizations(localizations) {
         .filter((localization) => !localization.allowDuplicates)
         .map((localization) => localization.value);
     return duplicates(localizationValues);
+}
+
+function checkBothValues(localizations) {
+    return localizations
+        .filter((localization) => localization.hasBothValues)
+        .map((localization) => localization.id);
 }
 
 function count(values) {

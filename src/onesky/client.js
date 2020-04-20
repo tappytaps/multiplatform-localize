@@ -12,11 +12,15 @@ module.exports = {
     getFile
 };
 
-const commonOptions = conf.oneSky || {};
+const commonOptions = {
+    secret: conf.oneSky.secret,
+    apiKey: conf.oneSky.apiKey
+};
 
-async function uploadTranslations(translations) {
+async function uploadTranslations(translations, projectId) {
     const options = {
         ...commonOptions,
+        projectId,
         language: conf.baseLanguage,
         fileName: "translations.json",
         format: "HIERARCHICAL_JSON",
@@ -26,9 +30,10 @@ async function uploadTranslations(translations) {
     await onesky.postFile(options);
 }
 
-async function uploadStringsdict(content, fileName) {
+async function uploadStringsdict(content, fileName, projectId) {
     const options = {
         ...commonOptions,
+        projectId,
         language: conf.baseLanguage,
         format: "IOS_STRINGSDICT_XML",
         content,
@@ -38,9 +43,10 @@ async function uploadStringsdict(content, fileName) {
     await onesky.postFile(options);
 }
 
-async function uploadAndroidXml(content, fileName) {
+async function uploadAndroidXml(content, fileName, projectId) {
     const options = {
         ...commonOptions,
+        projectId,
         language: conf.baseLanguage,
         format: "ANDROID_XML",
         content,
@@ -50,9 +56,10 @@ async function uploadAndroidXml(content, fileName) {
     await onesky.postFile(options);
 }
 
-async function uploadHierarchicalJson(content, fileName) {
+async function uploadHierarchicalJson(content, fileName, projectId) {
     const options = {
         ...commonOptions,
+        projectId,
         language: conf.baseLanguage,
         format: "I18NEXT_HIERARCHICAL_JSON",
         content,
@@ -62,9 +69,10 @@ async function uploadHierarchicalJson(content, fileName) {
     await onesky.postFile(options);
 }
 
-async function getLanguages() {
+async function getLanguages(projectId) {
     const options = {
-        ...commonOptions
+        ...commonOptions,
+        projectId
     };
     const response = await onesky.getLanguages(options);
     const { data } = JSON.parse(response);
@@ -73,17 +81,22 @@ async function getLanguages() {
     return codes;
 }
 
-async function getTranslationsFile(language) {
-    const translations = await getFile(language, "translations.json");
+async function getTranslationsFile(language, projectId) {
+    const translations = await getFile(
+        language,
+        "translations.json",
+        projectId
+    );
     if (translations) {
         return JSON.parse(translations);
     }
     return null;
 }
 
-async function getFile(language, fileName) {
+async function getFile(language, fileName, projectId) {
     const options = {
         ...commonOptions,
+        projectId,
         fileName,
         language
     };

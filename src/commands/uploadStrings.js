@@ -5,6 +5,7 @@ const ora = require("ora");
 const xlsx = require("../xlsx");
 const conf = require("../config");
 const PlatformKey = require("../PlatformKey");
+const OneSkyProjectType = require("../OneSkyProjectType");
 const { oneSkyClient } = require("../onesky");
 const { getOneSkyStringsFromSheets } = require("../sheets");
 
@@ -33,16 +34,36 @@ async function _uploadStrings() {
         warningLogger: (duplicates) => spinner.warn(duplicates)
     });
 
-    spinner.start("Uploading strings to OneSky");
+    for (const project of conf.getOneSkyProjects()) {
+        let projectStrings = [];
 
-    const stringsForLocalization = strings.reduce(
-        (obj, string) => Object.assign(obj, { [string.id]: string.value }),
-        {}
-    );
+        switch (project.type) {
+            case OneSkyProjectType.all:
+                projectStrings = strings;
+                break;
+            case OneSkyProjectType.common:
+                projectStrings = strings.filter((string) => {
+                    return !string.isAppSpecific;
+                });
+                break;
+            case OneSkyProjectType.appSpecific:
+                projectStrings = strings.filter((string) => {
+                    return string.isAppSpecific;
+                });
+                break;
+            default:
+                break;
+        }
 
-    await oneSkyClient.uploadTranslations(stringsForLocalization);
+        spinner.start(
+            `Uploading ${project.type} strings (${projectStrings.length}) to OneSky`
+        );
 
-    spinner.succeed();
+        const localizations = transformStringsToLocalizations(projectStrings);
+        await oneSkyClient.uploadTranslations(localizations, project.id);
+
+        spinner.succeed();
+    }
 }
 
 async function _uploadPluralsIfNeeded() {
@@ -52,24 +73,28 @@ async function _uploadPluralsIfNeeded() {
         const pluralsPath = conf.getPluralsPath();
         const pluralsFileName = conf.getPluralsFileName();
         const pluralsContent = fs.readFileSync(pluralsPath, "utf8");
+        const pluralsProjectId = conf.getOneSkyPluralsProjectId();
 
         switch (conf.platform) {
             case PlatformKey.ios:
                 await oneSkyClient.uploadStringsdict(
                     pluralsContent,
-                    pluralsFileName
+                    pluralsFileName,
+                    pluralsProjectId
                 );
                 break;
             case PlatformKey.android:
                 await oneSkyClient.uploadAndroidXml(
                     pluralsContent,
-                    pluralsFileName
+                    pluralsFileName,
+                    pluralsProjectId
                 );
                 break;
             case PlatformKey.web:
                 await oneSkyClient.uploadHierarchicalJson(
                     pluralsContent,
-                    pluralsFileName
+                    pluralsFileName,
+                    pluralsProjectId
                 );
                 break;
             default:
@@ -78,4 +103,11 @@ async function _uploadPluralsIfNeeded() {
 
         spinner.succeed();
     }
+}
+
+function transformStringsToLocalizations(strings) {
+    return strings.reduce(
+        (obj, string) => Object.assign(obj, { [string.id]: string.value }),
+        {}
+    );
 }

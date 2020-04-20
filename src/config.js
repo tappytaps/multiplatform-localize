@@ -3,6 +3,7 @@ const path = require("path");
 const rc = require("rc");
 
 const PlatformKey = require("./PlatformKey");
+const OneSkyProjectType = require("./OneSkyProjectType");
 
 const conf = rc("stringsgen", {
     idColumnName: "id",
@@ -13,6 +14,8 @@ const conf = rc("stringsgen", {
     baseLanguage: "en"
 });
 
+const commonValuesColumnName = conf.valuesColumnName;
+
 function validate() {
     validateRequiredFields([
         "xlsxUrl",
@@ -20,7 +23,6 @@ function validate() {
         "idColumnName",
         "keysColumnName",
         "valuesColumnName",
-        "sheets",
         "outputDir",
         "outputName"
     ]);
@@ -28,20 +30,23 @@ function validate() {
 }
 
 function validateOneSkyConfiguration() {
-    validateRequiredFields([
-        "xlsxUrl",
-        "idColumnName",
-        "valuesColumnName",
-        "sheets"
-    ]);
+    validateRequiredFields(["xlsxUrl", "idColumnName", "valuesColumnName"]);
+
+    const hasOneSkyConfiguration =
+        conf.oneSky && conf.oneSky.secret && conf.oneSky.apiKey;
+
+    const hasSingleProjectConfiguration =
+        hasOneSkyConfiguration && conf.oneSky.projectId;
+
+    const hasMultiProjectConfiguration =
+        hasOneSkyConfiguration && conf.oneSky.projects;
+
     if (
-        !conf.oneSky ||
-        !conf.oneSky.secret ||
-        !conf.oneSky.projectId ||
-        !conf.oneSky.apiKey
+        !hasOneSkyConfiguration &&
+        (!hasSingleProjectConfiguration || !hasMultiProjectConfiguration)
     ) {
         console.error(
-            "🙏 Config file should define oneSky.secret, oneSky.projectId and oneSky.apiKey."
+            "🙏 Config file should define oneSky.secret, oneSky.apiKey and (oneSky.projectId or oneSky.projects)."
         );
         process.exit(1);
     }
@@ -67,6 +72,24 @@ function validatePlatform() {
         );
         process.exit(1);
     }
+}
+
+function getOneSkyProjects() {
+    if (conf.oneSky.projects) {
+        return conf.oneSky.projects;
+    }
+    return [{ type: OneSkyProjectType.all, id: conf.oneSky.projectId }];
+}
+
+function getOneSkyPluralsProjectId() {
+    const projects = getOneSkyProjects();
+    const pluralsProject = projects.find((project) => {
+        return (
+            project.type === OneSkyProjectType.all ||
+            project.type === OneSkyProjectType.appSpecific
+        );
+    });
+    return pluralsProject.id;
 }
 
 function hasPlurals() {
@@ -107,10 +130,13 @@ function getOutputDirPath(language) {
 
 module.exports = {
     ...conf,
+    commonValuesColumnName,
     validate,
     validateOneSkyConfiguration,
     hasPlurals,
     getPluralsPath,
     getPluralsFileName,
-    getOutputDirPath
+    getOutputDirPath,
+    getOneSkyProjects,
+    getOneSkyPluralsProjectId
 };

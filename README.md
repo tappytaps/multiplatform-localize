@@ -45,18 +45,17 @@ $ stringsgen down
 
 You provide your configuration via .stringsgenrc file.
 
-```
+```json
 {
     "xlsxUrl": "your_url_for_xlsx_file",
     "platform": "ios",
     "idColumnName": "id",
     "keysColumnName": "key_ios",
-    "valuesColumnName": "value_en",
+    "valuesColumnName": "value",
     "allowDuplicatesColumnName": "allow_duplicates",
     "descriptionColumnName": "description",
     "isHtmlColumnName": "is_html",
     "baseLanguage": "en",
-    "sheets": ["Sheet1", "Sheet2"],
     "outputDir": ".",
     "outputName": "Localizable.strings",
     "inputPlurals": "Localizable.stringsdict",
@@ -67,6 +66,31 @@ You provide your configuration via .stringsgenrc file.
     }
 }
 ```
+
+If you want to split your strings into **common** and **app specific** OneSky projects:
+
+```json
+{
+  	...,
+  	"appSpecificValuesColumnName": "value_APP_NAME",
+		"oneSky": {
+  			"secret": "TOP_SECRET",
+        "apiKey": "YOUR_API_KEY",
+        "projects": [
+  					{
+  							"type": "common",
+  							"id": "COMMON_PROJECT_ID"
+						},
+						{
+  							"type": "app_specific",
+  							"id": "APP_SPECIFIC_PROJECT_ID"
+            }
+  			]
+		}
+}
+```
+
+
 
 # Spreadsheet requirements
 
@@ -80,7 +104,8 @@ The sample spreadsheet contains prepared autoincrement id generator. If you want
 -   Column names should be same across all sheets.
 -   `idColumnName` => Unique string identifier.
 -   `keysColumnName` => String key. Must be unique, otherwise the strings generator will end with error.
--   `valuesColumnName` => String value. Don't has to be unique, but the strings generator will warn your if there are any duplicates.
+-   `valuesColumnName` => String value. Doesn't has to be unique, but the strings generator will warn your if there are any duplicates.
+-   `appSpecificValuesColumnName` => App specific string value. Required only if you want to split your strings in OneSky.
 -   `allowDuplicatesColumnName` => If the column contains **TRUE**, the strings generator will not show warnings for duplicate in `valuesColumnName` column for given string.
 -   `descriptionColumnName` => Description for string value, if needed.
 -   `isHtmlColumnName` => If the column contains **TRUE**, the strings generator will handle a string value in special way (Android).

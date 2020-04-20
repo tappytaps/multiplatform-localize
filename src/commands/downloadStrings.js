@@ -1,3 +1,4 @@
+/* eslint-disable no-loop-func */
 const ora = require("ora");
 
 const conf = require("../config");
@@ -15,6 +16,7 @@ module.exports = async function downloadStrings() {
 
     try {
         const originalStrings = await _getOriginalStrings();
+
         const languages = await _getLanguages();
         await _downloadLocalizedStrings(originalStrings, languages);
         await _downloadLocalizedPluralsIfNeeded(languages);
@@ -42,9 +44,19 @@ async function _getOriginalStrings() {
 
 async function _getLanguages() {
     spinner.start("Getting languages");
-    const languages = await oneSkyClient.getLanguages();
+
+    let languages = [];
+
+    for (const project of conf.getOneSkyProjects()) {
+        const projectLanguages = await oneSkyClient.getLanguages(project.id);
+        languages = [...languages, ...projectLanguages];
+    }
+
+    languages = Array.from(new Set(languages));
+
     spinner.succeed();
     spinner.info(`${languages.join()}`);
+
     return languages;
 }
 
@@ -52,38 +64,46 @@ async function _downloadLocalizedStrings(originalStrings, languages) {
     for (const language of languages) {
         spinner.start(`Downloading localized strings for: ${language}`);
 
-        const file = await oneSkyClient.getTranslationsFile(language);
+        let localizations = [];
 
-        if (file) {
-            const localizations = Object.keys(file)
-                .map((translationId) => {
-                    // console.log(translation);
-                    const id = translationId;
-                    const value = file[translationId];
-                    return { id, value };
-                })
-                .map((localizedString) => {
-                    const originalString = originalStrings.find((s) => {
-                        return String(s.id) === String(localizedString.id);
-                    });
-                    if (!originalString) {
-                        return null;
-                    }
-                    const { key, isHtml } = originalString;
-                    return {
-                        key,
-                        value: prepareStringValueForPlatform(
-                            localizedString.value,
-                            conf.platform,
-                            isHtml
-                        )
-                    };
-                })
-                .filter((s) => s != null);
+        for (const project of conf.getOneSkyProjects()) {
+            const projectFile = await oneSkyClient.getTranslationsFile(
+                language,
+                project.id
+            );
 
-            files.exportStrings(localizations, language);
-            spinner.succeed();
+            if (projectFile) {
+                const projectLocalizations = Object.keys(projectFile)
+                    .map((translationId) => {
+                        const id = translationId;
+                        const value = projectFile[translationId];
+                        return { id, value };
+                    })
+                    .map((localizedString) => {
+                        const originalString = originalStrings.find((s) => {
+                            return String(s.id) === String(localizedString.id);
+                        });
+                        if (!originalString) {
+                            return null;
+                        }
+                        const { key, isHtml } = originalString;
+                        return {
+                            key,
+                            value: prepareStringValueForPlatform(
+                                localizedString.value,
+                                conf.platform,
+                                isHtml
+                            )
+                        };
+                    })
+                    .filter((s) => s != null);
+
+                localizations = [...localizations, ...projectLocalizations];
+            }
         }
+
+        files.exportStrings(localizations, language);
+        spinner.succeed();
     }
 }
 
@@ -94,9 +114,11 @@ async function _downloadLocalizedPluralsIfNeeded(languages) {
         spinner.start(`Downloading localized plurals for: ${language}`);
 
         const pluralsFileName = conf.getPluralsFileName();
+        const pluralsProjectId = conf.getOneSkyPluralsProjectId();
         const pluralsFileContent = await oneSkyClient.getFile(
             language,
-            pluralsFileName
+            pluralsFileName,
+            pluralsProjectId
         );
 
         if (pluralsFileContent) {
