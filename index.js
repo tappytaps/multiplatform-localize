@@ -2,7 +2,6 @@
 
 const program = require("commander");
 
-const conf = require("./src/config");
 const commands = require("./src/commands");
 const { version } = require("./package.json");
 
@@ -12,10 +11,7 @@ const { version } = require("./package.json");
 
 program.version(version);
 
-program
-    .command("generate")
-    .alias("gen")
-    .action(runGenerateStrings);
+program.command("generate").alias("gen").action(runGenerateStrings);
 
 program
     .command("upload")
@@ -29,6 +25,7 @@ program
     .description("Download translated strings from OneSky")
     .action(runDownloadStrings);
 
+program.option("-c, --config", "Path to configuration file");
 program.parse(process.argv);
 
 //
