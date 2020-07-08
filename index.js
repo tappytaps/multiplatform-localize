@@ -20,7 +20,8 @@ program
     .description("Upload strings to OneSky.")
     .option(
         "-a, --app-specific-only",
-        "Option to upload only app specific strings"
+        "Option to upload only app specific strings",
+        false
     )
     .action(runUploadStrings);
 
@@ -39,7 +40,8 @@ program.parse(process.argv);
 async function runGenerateStrings() {
     await commands.generateStrings();
 }
-async function runUploadStrings(config, options) {
+async function runUploadStrings(config) {
+    const options = config.opts();
     await commands.uploadStrings({ appSpecificOnly: options.appSpecificOnly });
 }
 async function runDownloadStrings() {
