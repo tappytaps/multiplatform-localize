@@ -18,7 +18,7 @@ module.exports = async function generateStrings() {
         _exportStrings(strings);
         _exportPluralsStringsIfNeeded();
     } catch (error) {
-        spinner.fail(error);
+        spinner.fail(error.message);
     }
 };
 
