@@ -1,6 +1,6 @@
 {
     "name": "@tappytaps/translation-tool",
-    "version": "1.3.8",
+    "version": "1.3.9",
     "description": "Generates platform specific string resources (iOS, Android and Web) from xlsx files.",
     "main": "index.js",
     "author": "",

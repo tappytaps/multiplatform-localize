@@ -1,10 +1,10 @@
 const fs = require("fs");
+const path = require("path");
 
 const ora = require("ora");
 
 const xlsx = require("../xlsx");
 const conf = require("../config");
-const PlatformKey = require("../PlatformKey");
 const OneSkyProjectType = require("../OneSkyProjectType");
 const { oneSkyClient } = require("../onesky");
 const { getOneSkyStringsFromSheets } = require("../sheets");
@@ -79,25 +79,26 @@ async function _uploadPluralsIfNeeded() {
 
         const pluralsPath = conf.getPluralsPath();
         const pluralsFileName = conf.getPluralsFileName();
+        const pluralsFileExtension = path.extname(pluralsPath);
         const pluralsContent = fs.readFileSync(pluralsPath, "utf8");
         const pluralsProjectId = conf.getOneSkyPluralsProjectId();
 
-        switch (conf.platform) {
-            case PlatformKey.ios:
+        switch (pluralsFileExtension) {
+            case ".stringsdict":
                 await oneSkyClient.uploadStringsdict(
                     pluralsContent,
                     pluralsFileName,
                     pluralsProjectId
                 );
                 break;
-            case PlatformKey.android:
+            case ".xml":
                 await oneSkyClient.uploadAndroidXml(
                     pluralsContent,
                     pluralsFileName,
                     pluralsProjectId
                 );
                 break;
-            case PlatformKey.web:
+            case ".json":
                 await oneSkyClient.uploadHierarchicalJson(
                     pluralsContent,
                     pluralsFileName,
@@ -105,7 +106,9 @@ async function _uploadPluralsIfNeeded() {
                 );
                 break;
             default:
-                break;
+                throw new Error(
+                    `Unknown plurals file type ${pluralsFileExtension}`
+                );
         }
 
         spinner.succeed();
