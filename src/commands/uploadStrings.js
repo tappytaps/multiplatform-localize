@@ -18,7 +18,7 @@ module.exports = async function uploadStrings(options) {
         await _uploadStrings(options);
         await _uploadPluralsIfNeeded(options);
     } catch (error) {
-        spinner.fail(error);
+        spinner.fail(error.message);
     }
 };
 

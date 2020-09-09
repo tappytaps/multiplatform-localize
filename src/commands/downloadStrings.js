@@ -21,7 +21,7 @@ module.exports = async function downloadStrings() {
         await _downloadLocalizedStrings(originalStrings, languages);
         await _downloadLocalizedPluralsIfNeeded(languages);
     } catch (error) {
-        spinner.fail(error);
+        spinner.fail(error.message);
     }
 };
 
