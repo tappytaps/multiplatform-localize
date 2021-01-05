@@ -16,7 +16,6 @@ module.exports = async function downloadStrings() {
 
     try {
         const originalStrings = await _getOriginalStrings();
-
         const languages = await _getLanguages();
         await _downloadLocalizedStrings(originalStrings, languages);
         await _downloadLocalizedPluralsIfNeeded(languages);
@@ -76,7 +75,7 @@ async function _downloadLocalizedStrings(originalStrings, languages) {
                 const projectLocalizations = Object.keys(projectFile)
                     .map((translationId) => {
                         const id = translationId;
-                        const value = projectFile[translationId];
+                        const value = projectFile[translationId].trim();
                         return { id, value };
                     })
                     .map((localizedString) => {
