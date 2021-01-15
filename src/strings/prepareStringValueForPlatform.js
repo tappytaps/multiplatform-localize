@@ -42,15 +42,25 @@ function replaceFormatSpecifiers(text, platform) {
         return text;
     }
     if (formatSpecifiers === "automatic") {
-        let index = 0;
         let updatedText = text;
-        const formatSpecifiersExpression = /(%(\d\$)?@|%(\d\$)?d|%(\d\$)?f)/;
-        while (updatedText.match(formatSpecifiersExpression)) {
+        const formatSpecifiersExpression = /(%@|%d|%f)/;
+        const formatSpecifiersExpressionPositional = /(%((\d)\$)?@|%((\d)\$)?d|%((\d)\$)?f)/;
+        if (formatSpecifiersExpression.test(updatedText)) {
+            let index = 0;
+            while (updatedText.match(formatSpecifiersExpressionPositional)) {
+                updatedText = updatedText.replace(
+                    formatSpecifiersExpressionPositional,
+                    `{{value${index}}}`
+                );
+                index += 1;
+            }
+        } else {
             updatedText = updatedText.replace(
-                formatSpecifiersExpression,
-                `{{value${index}}}`
+                new RegExp(formatSpecifiersExpressionPositional, "g"),
+                (substring, group1, group2, group3) => { 
+                    return `{{value${Number(group3) - 1}}}`
+                 }
             );
-            index += 1;
         }
         return updatedText;
     }
