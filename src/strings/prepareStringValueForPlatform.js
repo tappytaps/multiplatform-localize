@@ -24,14 +24,18 @@ module.exports = function prepareStringValueForPlatform(
     platform,
     isHtml = false
 ) {
+    let platformValue = value;
+    if (platform === PlatformKey.web) {
+        platformValue = platformValue.replace(/\n/g, " ")
+    }
     if (platform === PlatformKey.android && isHtml) {
         return replaceFormatSpecifiers(
-            `<![CDATA[${excapeForCdata(value)}]]>`,
+            `<![CDATA[${excapeForCdata(platformValue)}]]>`,
             platform
         );
     }
     return escapeForPlatform(
-        replaceFormatSpecifiers(value, platform),
+        replaceFormatSpecifiers(platformValue, platform),
         platform
     );
 };
