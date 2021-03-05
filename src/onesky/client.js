@@ -91,7 +91,7 @@ async function getTranslationsFile(language, projectId) {
     if (translations) {
         const json = JSON.parse(translations);
         Object.keys(json).forEach((key) => {
-            json[key] = json[key].replace(/\n/i, "\\n")
+            json[key] = json[key].replace(/\n/g, "\\n")
         });
         return json;
     }
