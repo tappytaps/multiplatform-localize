@@ -55,6 +55,7 @@ You provide your configuration via .stringsgenrc file.
     "allowDuplicatesColumnName": "allow_duplicates",
     "descriptionColumnName": "description",
     "isHtmlColumnName": "is_html",
+    "isFinalColumnName": "is_final",
     "baseLanguage": "en",
     "outputDir": ".",
     "outputName": "Localizable.strings",
@@ -71,25 +72,23 @@ If you want to split your strings into **common** and **app specific** OneSky pr
 
 ```json
 {
-	"appSpecificValuesColumnName": "value_APP_NAME",
-	"oneSky": {
-    "secret": "TOP_SECRET",
-  	"apiKey": "YOUR_API_KEY",
-  	"projects": [
-      {
-        "type": "common",
-        "id": "COMMON_PROJECT_ID"
-      },
-      {
-        "type": "app_specific",
-        "id": "APP_SPECIFIC_PROJECT_ID"
-      }
-    ]
-  }
+    "appSpecificValuesColumnName": "value_APP_NAME",
+    "oneSky": {
+        "secret": "TOP_SECRET",
+        "apiKey": "YOUR_API_KEY",
+        "projects": [
+            {
+                "type": "common",
+                "id": "COMMON_PROJECT_ID"
+            },
+            {
+                "type": "app_specific",
+                "id": "APP_SPECIFIC_PROJECT_ID"
+            }
+        ]
+    }
 }
 ```
-
-
 
 # Spreadsheet requirements
 
