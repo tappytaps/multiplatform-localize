@@ -11,6 +11,7 @@ const conf = rc("stringsgen", {
     allowDuplicatesColumnName: "allow_duplicates",
     descriptionColumnName: "description",
     isHtmlColumnName: "is_html",
+    isFinalColumnName: "is_final",
     baseLanguage: "en"
 });
 

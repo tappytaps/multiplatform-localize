@@ -13,7 +13,7 @@ function getPlatformStringsFromSheets(
         .reduce((a, b) => a.concat(b), []);
 
     if (validate) {
-        checkForDuplicates(strings, warningLogger);
+        checkForDuplicates(strings, warningLogger, { checkIds: false });
     }
 
     return strings;
@@ -29,7 +29,7 @@ function getOneSkyStringsFromSheets(
         .reduce((a, b) => a.concat(b), []);
 
     if (validate) {
-        checkForDuplicates(strings, warningLogger);
+        checkForDuplicates(strings, warningLogger, { checkKeys: false });
     }
 
     return strings;
