@@ -97,8 +97,12 @@ function hasPlurals() {
     return conf.inputPlurals !== undefined;
 }
 
+function getConfigDirname() {
+    return path.dirname(conf.config);
+}
+
 function getPluralsPath() {
-    return path.resolve(process.cwd(), conf.inputPlurals);
+    return path.resolve(process.cwd(), getConfigDirname(), conf.inputPlurals);
 }
 
 function getPluralsFileName() {
@@ -126,7 +130,12 @@ function getOutputDirPath(language) {
             break;
     }
 
-    return path.resolve(process.cwd(), conf.outputDir, outputSubDir);
+    return path.resolve(
+        process.cwd(),
+        getConfigDirname(),
+        conf.outputDir,
+        outputSubDir
+    );
 }
 
 module.exports = {

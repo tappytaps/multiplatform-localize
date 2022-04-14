@@ -1,5 +1,6 @@
 const sheetParser = require("./sheet-parser");
 const checkForDuplicates = require("./checkForDuplicates");
+const spinner = require("../spinner");
 
 module.exports = { getPlatformStringsFromSheets, getOneSkyStringsFromSheets };
 
@@ -19,17 +20,16 @@ function getPlatformStringsFromSheets(
     return strings;
 }
 
-function getOneSkyStringsFromSheets(
-    sheets,
-    { warningLogger = undefined, validate = true }
-) {
+function getOneSkyStringsFromSheets(sheets, { validate = true }) {
     const strings = sheets
         .filter(isStringsSheet)
         .map(sheetParser.transformSheetToOneSkyStrings)
         .reduce((a, b) => a.concat(b), []);
 
     if (validate) {
-        checkForDuplicates(strings, warningLogger, { checkKeys: false });
+        checkForDuplicates(strings, (duplicates) => spinner.warn(duplicates), {
+            checkKeys: false
+        });
     }
 
     return strings;

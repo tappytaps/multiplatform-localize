@@ -3,6 +3,7 @@ const path = require("path");
 
 const PlatformKey = require("../PlatformKey");
 const conf = require("../config");
+const ensureDirectoryExistence = require("./ensureDirectoryExistence");
 
 module.exports = function exportStrings(localizations, language) {
     const outputFilePath = path.join(
@@ -32,15 +33,6 @@ module.exports = function exportStrings(localizations, language) {
             break;
     }
 };
-
-function ensureDirectoryExistence(filePath) {
-    const dirname = path.dirname(filePath);
-    if (fs.existsSync(dirname)) {
-        return;
-    }
-    ensureDirectoryExistence(dirname);
-    fs.mkdirSync(dirname);
-}
 
 function exportAsStringsFile({ localizations, outputFile }) {
     for (const localization of localizations) {

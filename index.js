@@ -12,7 +12,10 @@ const { version } = require("./package.json");
 program.version(version);
 program.option("-c, --config", "Path to configuration file");
 
-program.command("generate").alias("gen").action(runGenerateStrings);
+program
+    .command("generate")
+    .alias("gen")
+    .action(runGenerateStrings);
 
 program
     .command("upload")
@@ -31,6 +34,11 @@ program
     .description("Download translated strings from OneSky")
     .action(runDownloadStrings);
 
+program
+    .command("check")
+    .description("Compares string on OneSky with strings in xlsx table")
+    .action(runCheckStrings);
+
 program.parse(process.argv);
 
 //
@@ -40,10 +48,16 @@ program.parse(process.argv);
 async function runGenerateStrings() {
     await commands.generateStrings();
 }
+
 async function runUploadStrings(config) {
     const options = config.opts();
     await commands.uploadStrings({ appSpecificOnly: options.appSpecificOnly });
 }
+
 async function runDownloadStrings() {
     await commands.downloadStrings();
+}
+
+async function runCheckStrings() {
+    await commands.checkStrings();
 }

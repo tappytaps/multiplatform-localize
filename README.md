@@ -41,6 +41,12 @@ Download translated strings from OneSky:
 $ stringsgen down
 ```
 
+Check not used strings on OneSky:
+
+```
+$ stringsgen check
+```
+
 # Configuration
 
 You provide your configuration via .stringsgenrc file.

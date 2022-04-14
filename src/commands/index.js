@@ -1,5 +1,6 @@
 module.exports = {
     generateStrings: require("./generateStrings"),
     uploadStrings: require("./uploadStrings"),
-    downloadStrings: require("./downloadStrings")
+    downloadStrings: require("./downloadStrings"),
+    checkStrings: require("./checkStrings")
 };

@@ -1,15 +1,11 @@
 const fs = require("fs");
 const path = require("path");
 
-const ora = require("ora");
-
-const xlsx = require("../xlsx");
 const conf = require("../config");
 const OneSkyProjectType = require("../OneSkyProjectType");
 const { oneSkyClient } = require("../onesky");
-const { getOneSkyStringsFromSheets } = require("../sheets");
-
-const spinner = ora();
+const { getAllStrings } = require("../strings");
+const spinner = require("../spinner");
 
 module.exports = async function uploadStrings(options) {
     conf.validateOneSkyConfiguration();
@@ -23,17 +19,11 @@ module.exports = async function uploadStrings(options) {
 };
 
 async function _uploadStrings(options) {
-    spinner.start("Downloading xlsx file");
-
     const { appSpecificOnly } = options;
-    const xlsxBuffer = await xlsx.download(conf.xlsxUrl);
-    const sheets = xlsx.parse(xlsxBuffer);
 
+    spinner.start("Downloading strings");
+    const strings = await getAllStrings({ validate: true });
     spinner.succeed();
-
-    const strings = getOneSkyStringsFromSheets(sheets, {
-        warningLogger: (duplicates) => spinner.warn(duplicates)
-    });
 
     for (const project of conf.getOneSkyProjects()) {
         let projectStrings = [];

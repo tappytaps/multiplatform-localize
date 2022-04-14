@@ -1,6 +1,7 @@
 {
     "eslint.run": "onType",
     "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
     "git.ignoreLimitWarning": true,
     "javascript.validate.enable": false,
     "editor.codeActionsOnSave": {
