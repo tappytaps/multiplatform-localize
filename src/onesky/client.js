@@ -12,68 +12,66 @@ module.exports = {
     getFile
 };
 
-const commonOptions = {
-    secret: conf.oneSky.secret,
-    apiKey: conf.oneSky.apiKey
-};
+function getOptions(options) {
+    return {
+        secret: conf.oneSky.secret,
+        apiKey: conf.oneSky.apiKey,
+        ...options
+    };
+}
 
 async function uploadTranslations(translations, projectId) {
-    const options = {
-        ...commonOptions,
+    const options = getOptions({
         projectId,
         language: conf.baseLanguage,
         fileName: "translations.json",
         format: "HIERARCHICAL_JSON",
         content: JSON.stringify(translations),
         keepStrings: true
-    };
+    });
     await onesky.postFile(options);
 }
 
 async function uploadStringsdict(content, fileName, projectId) {
-    const options = {
-        ...commonOptions,
+    const options = getOptions({
         projectId,
         language: conf.baseLanguage,
         format: "IOS_STRINGSDICT_XML",
         content,
         fileName,
         keepStrings: false
-    };
+    });
     await onesky.postFile(options);
 }
 
 async function uploadAndroidXml(content, fileName, projectId) {
-    const options = {
-        ...commonOptions,
+    const options = getOptions({
         projectId,
         language: conf.baseLanguage,
         format: "ANDROID_XML",
         content,
         fileName,
         keepStrings: false
-    };
+    });
     await onesky.postFile(options);
 }
 
 async function uploadHierarchicalJson(content, fileName, projectId) {
-    const options = {
-        ...commonOptions,
+    const options = getOptions({
         projectId,
         language: conf.baseLanguage,
         format: "I18NEXT_HIERARCHICAL_JSON",
         content,
         fileName,
         keepStrings: false
-    };
+    });
     await onesky.postFile(options);
 }
 
 async function getLanguages(projectId) {
-    const options = {
-        ...commonOptions,
+    const options = getOptions({
         projectId
-    };
+    });
     const response = await onesky.getLanguages(options);
     const { data } = JSON.parse(response);
     const codes = data.map((language) => language.code);
@@ -91,7 +89,7 @@ async function getTranslationsFile(language, projectId) {
     if (translations) {
         const json = JSON.parse(translations);
         Object.keys(json).forEach((key) => {
-            json[key] = json[key].replace(/\n/g, "\\n")
+            json[key] = json[key].replace(/\n/g, "\\n");
         });
         return json;
     }
@@ -99,12 +97,11 @@ async function getTranslationsFile(language, projectId) {
 }
 
 async function getFile(language, fileName, projectId) {
-    const options = {
-        ...commonOptions,
+    const options = getOptions({
         projectId,
         fileName,
         language
-    };
+    });
     try {
         const file = await onesky.getFile(options);
         return file;
