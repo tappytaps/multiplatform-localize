@@ -34,7 +34,7 @@ async function downloadLocalizedStrings(originalStrings, languages) {
 
         const localizedStrings = await strings.getLocalizedStrings(
             originalStrings,
-            languages
+            language
         );
         await files.exportStrings(localizedStrings, language);
 
