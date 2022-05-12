@@ -3,7 +3,7 @@ const path = require("path");
 
 const conf = require("../config");
 const OneSkyProjectType = require("../OneSkyProjectType");
-const { oneSkyClient } = require("../onesky");
+const { client: oneSkyClient } = require("../onesky");
 const { getAllStrings } = require("../strings");
 const spinner = require("../spinner");
 
