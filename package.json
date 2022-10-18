@@ -16,7 +16,7 @@
         "prettier": "1.19.1"
     },
     "dependencies": {
-        "@brainly/onesky-utils": "^1.4.0",
+        "@brainly/onesky-utils": "git+https://github.com/tappytaps/nodejs-onesky-utils.git",
         "commander": "^5.1.0",
         "follow-redirects": "^1.12.1",
         "fs-extra": "^7.0.1",
