@@ -54,11 +54,17 @@ async function downloadLocalizedPlurals(languages) {
             `Downloading localized plurals: ${language} (${languageCount}/${languages.length})`
         );
 
-        await files.exportFile(
-            await oneSky.getLocalizedPlurals(language),
-            conf.getPluralsFileName(),
-            language
-        );
+        const localizedPlurals = await oneSky.getLocalizedPlurals(language);
+
+        if (localizedPlurals) {
+            await files.exportFile(
+                localizedPlurals,
+                conf.getPluralsFileName(),
+                language
+            );
+        } else {
+            spinner.warn(`Found empty plurals file (${language})`);
+        }
 
         languageCount += 1;
     }
