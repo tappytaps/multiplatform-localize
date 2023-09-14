@@ -4,6 +4,7 @@ const rc = require("rc");
 
 const PlatformKey = require("./PlatformKey");
 const OneSkyProjectType = require("./OneSkyProjectType");
+const WebParameterType = require("./WebParameterType");
 
 const conf = rc("stringsgen", {
     idColumnName: "id",
@@ -12,7 +13,8 @@ const conf = rc("stringsgen", {
     descriptionColumnName: "description",
     isHtmlColumnName: "is_html",
     isFinalColumnName: "is_final",
-    baseLanguage: "en"
+    baseLanguage: "en",
+    webParameterType: WebParameterType.value
 });
 
 const commonValuesColumnName = conf.valuesColumnName;
@@ -67,8 +69,16 @@ function validateRequiredFields(requiredFields) {
 function validatePlatform() {
     if (!Object.values(PlatformKey).includes(conf.platform)) {
         console.error(
-            `😢 Unsopported platform. Supported platforms: ${Object.values(
+            `😢 Unsupported platform. Supported values: ${Object.values(
                 PlatformKey
+            )}`
+        );
+        process.exit(1);
+    }
+    if (!Object.values(WebParameterType).includes(conf.webParameterType)) {
+        console.error(
+            `😢 Unsopported webParameterType. Supported values: ${Object.values(
+                WebParameterType
             )}`
         );
         process.exit(1);
@@ -95,6 +105,10 @@ function getOneSkyPluralsProjectId() {
 
 function hasPlurals() {
     return conf.inputPlurals !== undefined;
+}
+
+function getWebParameterType() {
+    return conf.webParameterType;
 }
 
 function getConfigDirname() {
@@ -148,5 +162,6 @@ module.exports = {
     getPluralsFileName,
     getOutputDirPath,
     getOneSkyProjects,
-    getOneSkyPluralsProjectId
+    getOneSkyPluralsProjectId,
+    getWebParameterType
 };

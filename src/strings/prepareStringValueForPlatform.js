@@ -1,5 +1,7 @@
 const PlatformConfig = require("../PlatformConfig");
 const PlatformKey = require("../PlatformKey");
+const WebParameterType = require("../WebParameterType");
+const config = require("../config");
 
 const commonSpecialCharacters = [
     {
@@ -37,37 +39,48 @@ module.exports = function prepareStringValueForPlatform(
 };
 
 function replaceFormatSpecifiers(text, platform) {
-    const { formatSpecifiers } = PlatformConfig[platform];
-    if (formatSpecifiers === "none") {
-        return text;
-    }
-    if (formatSpecifiers === "automatic") {
-        let updatedText = text;
-        const formatSpecifiersExpression = /(%@|%d|%f)/;
-        const formatSpecifiersExpressionPositional = /(%((\d)\$)?@|%((\d)\$)?d|%((\d)\$)?f)/;
-        if (formatSpecifiersExpression.test(updatedText)) {
-            let index = 0;
-            while (updatedText.match(formatSpecifiersExpressionPositional)) {
+    switch (platform) {
+        case PlatformKey.ios:
+            return text;
+        case PlatformKey.android:
+            const { formatSpecifiers } = PlatformConfig.android;
+            return text
+                .replace(/(%)(\d\$)?@/g, `$1$2${formatSpecifiers.string}`)
+                .replace(/(%)(\d\$)?d/g, `$1$2${formatSpecifiers.integer}`)
+                .replace(/(%)(\d\$)?f/g, `$1$2${formatSpecifiers.double}`);
+        case PlatformKey.web:
+            let updatedText = text;
+            const formatSpecifiersExpression = /(%@|%d|%f)/;
+            const formatSpecifiersExpressionPositional = /(%((\d)\$)?@|%((\d)\$)?d|%((\d)\$)?f)/;
+            if (formatSpecifiersExpression.test(updatedText)) {
+                let index = 0;
+                while (
+                    updatedText.match(formatSpecifiersExpressionPositional)
+                ) {
+                    updatedText = updatedText.replace(
+                        formatSpecifiersExpressionPositional,
+                        webParameterValue(index + 1)
+                    );
+                    index += 1;
+                }
+            } else {
                 updatedText = updatedText.replace(
-                    formatSpecifiersExpressionPositional,
-                    `{{value${index}}}`
+                    new RegExp(formatSpecifiersExpressionPositional, "g"),
+                    (substring, group1, group2, group3) => {
+                        return webParameterValue(Number(group3) - 1);
+                    }
                 );
-                index += 1;
             }
-        } else {
-            updatedText = updatedText.replace(
-                new RegExp(formatSpecifiersExpressionPositional, "g"),
-                (substring, group1, group2, group3) => { 
-                    return `{{value${Number(group3) - 1}}}`
-                 }
-            );
-        }
-        return updatedText;
+            return updatedText;
     }
-    return text
-        .replace(/(%)(\d\$)?@/g, `$1$2${formatSpecifiers.string}`)
-        .replace(/(%)(\d\$)?d/g, `$1$2${formatSpecifiers.integer}`)
-        .replace(/(%)(\d\$)?f/g, `$1$2${formatSpecifiers.double}`);
+}
+
+function webParameterValue(number) {
+    if (config.getWebParameterType() == WebParameterType.tag) {
+        return `<${number}/>`;
+    } else {
+        return `{{value${number}}}`;
+    }
 }
 
 function escapeForPlatform(text, platform) {

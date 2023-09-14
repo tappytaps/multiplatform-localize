@@ -1,6 +1,6 @@
 module.exports = {
     ios: {
-        formatSpecifiers: "none",
+        formatSpecifiers: {},
         specialCharacters: []
     },
     android: {
@@ -18,7 +18,7 @@ module.exports = {
         }
     },
     web: {
-        formatSpecifiers: "automatic",
+        formatSpecifiers: {},
         specialCharacters: []
     }
 };
