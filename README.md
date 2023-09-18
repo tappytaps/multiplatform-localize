@@ -66,9 +66,6 @@ You provide your configuration via .stringsgenrc file.
     "outputDir": ".",
     "outputName": "Localizable.strings",
     "inputPlurals": "Localizable.stringsdict",
-    // Only for web
-    // values: value, tag
-    // default: value
     "webParameterType": "value",
     "oneSky": {
         "secret": "TOP_SECRET",
@@ -77,6 +74,13 @@ You provide your configuration via .stringsgenrc file.
     }
 }
 ```
+
+-   **platform**
+    -   values: ios, android, web
+-   **webParameterType**
+    -   only for web
+    -   values: value, tag
+    -   default: value
 
 If you want to split your strings into **common** and **app specific** OneSky projects:
 
