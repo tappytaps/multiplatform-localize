@@ -42,16 +42,20 @@ function replaceFormatSpecifiers(text, platform) {
     switch (platform) {
         case PlatformKey.ios:
             return text;
-        case PlatformKey.android:
+        case PlatformKey.android: {
             const { formatSpecifiers } = PlatformConfig.android;
             return text
                 .replace(/(%)(\d\$)?@/g, `$1$2${formatSpecifiers.string}`)
                 .replace(/(%)(\d\$)?d/g, `$1$2${formatSpecifiers.integer}`)
                 .replace(/(%)(\d\$)?f/g, `$1$2${formatSpecifiers.double}`);
-        case PlatformKey.web:
+        }
+
+        case PlatformKey.web: {
             let updatedText = text;
+
             const formatSpecifiersExpression = /(%@|%d|%f)/;
             const formatSpecifiersExpressionPositional = /(%((\d)\$)?@|%((\d)\$)?d|%((\d)\$)?f)/;
+
             if (formatSpecifiersExpression.test(updatedText)) {
                 let index = 0;
                 while (
@@ -59,7 +63,7 @@ function replaceFormatSpecifiers(text, platform) {
                 ) {
                     updatedText = updatedText.replace(
                         formatSpecifiersExpressionPositional,
-                        webParameterValue(index + 1)
+                        webParameterValue(index)
                     );
                     index += 1;
                 }
@@ -71,15 +75,23 @@ function replaceFormatSpecifiers(text, platform) {
                     }
                 );
             }
+
             return updatedText;
+        }
+        default:
+            throw new Error("Unknown platform");
     }
 }
 
 function webParameterValue(number) {
-    if (config.getWebParameterType() == WebParameterType.tag) {
-        return `<${number}/>`;
-    } else {
-        return `{{value${number}}}`;
+    switch (config.getWebParameterType()) {
+        case WebParameterType.tag:
+            return `<${number}/>`;
+
+        case WebParameterType.value:
+            return `{{value${number}}}`;
+        default:
+            throw new Error("Unknown parameter type");
     }
 }
 
