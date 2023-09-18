@@ -66,6 +66,10 @@ You provide your configuration via .stringsgenrc file.
     "outputDir": ".",
     "outputName": "Localizable.strings",
     "inputPlurals": "Localizable.stringsdict",
+    // Only for web
+    // values: value, tag
+    // default: value
+    "webParameterType": "value",
     "oneSky": {
         "secret": "TOP_SECRET",
         "apiKey": "YOUR_API_KEY",
