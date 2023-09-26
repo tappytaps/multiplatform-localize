@@ -83,13 +83,13 @@ function replaceFormatSpecifiers(text, platform) {
     }
 }
 
-function webParameterValue(number) {
+function webParameterValue(index) {
     switch (config.getWebParameterType()) {
         case WebParameterType.tag:
-            return `<${number}/>`;
+            return `<${index + 1}/>`;
 
         case WebParameterType.value:
-            return `{{value${number}}}`;
+            return `{{value${index}}}`;
         default:
             throw new Error("Unknown parameter type");
     }
