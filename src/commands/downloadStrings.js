@@ -14,7 +14,8 @@ module.exports = async function downloadStrings() {
         spinner.succeed();
 
         spinner.start("Getting languages");
-        const languages = await oneSky.getLanguages();
+        
+        const languages = conf.getSupportedLanguages() ?? await oneSky.getLanguages();
         spinner.succeed(`Getting languages ${languages.join(" ")}`);
 
         await downloadLocalizedStrings(originalStrings, languages);

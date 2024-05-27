@@ -14,6 +14,7 @@ const conf = rc("stringsgen", {
     isHtmlColumnName: "is_html",
     isFinalColumnName: "is_final",
     baseLanguage: "en",
+    tabPlatformSpecific: "App Specific",
     webParameterType: WebParameterType.value
 });
 
@@ -123,6 +124,10 @@ function getPluralsFileName() {
     return path.basename(getPluralsPath());
 }
 
+function getSupportedLanguages() {
+    return conf.languages;
+}
+
 function getOutputDirPath(language) {
     let outputSubDir;
 
@@ -163,5 +168,6 @@ module.exports = {
     getOutputDirPath,
     getOneSkyProjects,
     getOneSkyPluralsProjectId,
-    getWebParameterType
+    getWebParameterType,
+    getSupportedLanguages
 };
