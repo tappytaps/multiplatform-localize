@@ -5,6 +5,8 @@ const ProjectSheet = require("../sheets/ProjectSheet");
 
 module.exports = async function uploadStrings(options) {
     try {
+        conf.validate();
+
         spinner.start(`Downloading sheets file...`);
 
         let projectSheets = await ProjectSheet.downloadSheets({

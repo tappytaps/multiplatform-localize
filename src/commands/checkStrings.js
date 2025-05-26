@@ -2,9 +2,12 @@ const conf = require("../config");
 const spinner = require("../spinner");
 const oneSky = require("../onesky");
 const ProjectSheet = require("../sheets/ProjectSheet");
+const config = require("../config");
 
 module.exports = async function checkStrings() {
     try {
+        config.validate();
+
         spinner.start("Downloading sheets file...");
 
         const projectSheets = await ProjectSheet.downloadSheets({

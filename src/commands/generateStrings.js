@@ -7,6 +7,8 @@ const ProjectSheet = require("../sheets/ProjectSheet");
 
 module.exports = async function generateStrings() {
     try {
+        conf.validate();
+
         await exportStrings();
         await exportPlurals();
     } catch (error) {

@@ -10,6 +10,8 @@ const spinner = require("../spinner");
 
 module.exports = async function uploadTranslations() {
     try {
+        conf.validate();
+
         const translationsDirPath = conf.getTranslationsDirPath();
 
         let files;

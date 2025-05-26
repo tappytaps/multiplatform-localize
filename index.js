@@ -6,8 +6,6 @@ const commands = require("./src/commands");
 const { version } = require("./package.json");
 const config = require("./src/config");
 
-config.validate();
-
 //
 // Program Definition
 //
@@ -15,7 +13,7 @@ config.validate();
 program.version(version);
 program.option("-c, --config", "Path to configuration file");
 
-const defaultSheets = config.sheets.map((sheet) => sheet.name);
+const defaultSheets = (config.sheets ?? []).map((sheet) => sheet.name);
 
 program
     .command("generate")

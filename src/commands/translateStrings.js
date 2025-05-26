@@ -18,6 +18,8 @@ module.exports = async function translateStrings(options) {
     const action = await selectAction();
 
     try {
+        conf.validate();
+
         switch (action) {
             case "translateNative":
                 {

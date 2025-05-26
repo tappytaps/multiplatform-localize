@@ -7,6 +7,8 @@ const ProjectSheet = require("../sheets/ProjectSheet");
 
 module.exports = async function downloadStrings() {
     try {
+        conf.validate();
+
         spinner.start("Downloading sheets file...");
 
         const projectSheets = await ProjectSheet.downloadSheets();

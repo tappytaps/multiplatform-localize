@@ -7,6 +7,8 @@ const spinner = require("../spinner");
 
 module.exports = async function uploadStrings() {
     try {
+        conf.validate();
+
         if (conf.hasPlurals()) {
             spinner.start("Uploading plurals to OneSky");
 
