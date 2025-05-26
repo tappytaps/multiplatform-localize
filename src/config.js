@@ -1,56 +1,41 @@
 const path = require("path");
 
 const rc = require("rc");
+const ISO6391 = require("iso-639-1");
 
 const PlatformKey = require("./PlatformKey");
-const OneSkyProjectType = require("./OneSkyProjectType");
 const WebParameterType = require("./WebParameterType");
 
 const conf = rc("stringsgen", {
-    idColumnName: "id",
-    valuesColumnName: "value_en",
-    allowDuplicatesColumnName: "allow_duplicates",
-    descriptionColumnName: "description",
-    isHtmlColumnName: "is_html",
-    isFinalColumnName: "is_final",
+    columns: {
+        id: "id",
+        key: "key",
+        allowDuplicates: "allow_duplicates",
+        description: "description",
+        isHtml: "is_html",
+        isFinal: "is_final",
+        aiTranslationDescription: "ai_translation_description"
+    },
     baseLanguage: "en",
-    tabPlatformSpecific: "App Specific",
+    nativeLanguage: "cs",
     webParameterType: WebParameterType.value
 });
 
-const commonValuesColumnName = conf.valuesColumnName;
-
 function validate() {
-    validateRequiredFields([
-        "xlsxUrl",
-        "platform",
-        "idColumnName",
-        "keysColumnName",
-        "valuesColumnName",
-        "outputDir",
-        "outputName"
-    ]);
+    validateRequiredFields(["xlsxUrl", "platform", "outputDir", "outputName"]);
     validatePlatform();
+    validateOneSkyConfiguration();
 }
 
 function validateOneSkyConfiguration() {
-    validateRequiredFields(["xlsxUrl", "idColumnName", "valuesColumnName"]);
+    validateRequiredFields(["xlsxUrl"]);
 
-    const hasOneSkyConfiguration =
-        conf.oneSky && conf.oneSky.secret && conf.oneSky.apiKey;
+    const apiKey = getOneSkyApiKey();
+    const apiSecret = getOneSkyApiSecret();
 
-    const hasSingleProjectConfiguration =
-        hasOneSkyConfiguration && conf.oneSky.projectId;
-
-    const hasMultiProjectConfiguration =
-        hasOneSkyConfiguration && conf.oneSky.projects;
-
-    if (
-        !hasOneSkyConfiguration &&
-        (!hasSingleProjectConfiguration || !hasMultiProjectConfiguration)
-    ) {
+    if (!apiKey || !apiSecret) {
         console.error(
-            "🙏 Config file should define oneSky.secret, oneSky.apiKey and (oneSky.projectId or oneSky.projects)."
+            "😢 Missing OneSky API key or secret. Please set ONESKY_API_KEY and ONESKY_API_SECRET environment variables."
         );
         process.exit(1);
     }
@@ -86,26 +71,36 @@ function validatePlatform() {
     }
 }
 
-function getOneSkyProjects() {
-    if (conf.oneSky.projects) {
-        return conf.oneSky.projects;
-    }
-    return [{ type: OneSkyProjectType.all, id: conf.oneSky.projectId }];
+function getOneSkyApiKey() {
+    return process.env.ONESKY_API_KEY;
 }
 
-function getOneSkyPluralsProjectId() {
-    const projects = getOneSkyProjects();
-    const pluralsProject = projects.find((project) => {
-        return (
-            project.type === OneSkyProjectType.all ||
-            project.type === OneSkyProjectType.appSpecific
-        );
-    });
-    return pluralsProject.id;
+function getOneSkyApiSecret() {
+    return process.env.ONESKY_API_SECRET;
+}
+
+function getSheets() {
+    return conf.sheets;
+}
+
+function getPluralsOneSkyProjectId() {
+    return conf.plurals.oneSkyProjectId;
+}
+
+function getPluralsFilePath() {
+    return path.resolve(
+        process.cwd(),
+        getConfigDirname(),
+        conf.plurals.inputFile
+    );
+}
+
+function getPluralsFileName() {
+    return path.basename(getPluralsFilePath());
 }
 
 function hasPlurals() {
-    return conf.inputPlurals !== undefined;
+    return conf.plurals !== undefined;
 }
 
 function getWebParameterType() {
@@ -116,16 +111,26 @@ function getConfigDirname() {
     return path.dirname(conf.config);
 }
 
-function getPluralsPath() {
-    return path.resolve(process.cwd(), getConfigDirname(), conf.inputPlurals);
-}
-
-function getPluralsFileName() {
-    return path.basename(getPluralsPath());
-}
-
 function getSupportedLanguages() {
     return conf.languages;
+}
+
+function getNonBaseLanguages() {
+    return conf.languages.filter((language) => language !== conf.baseLanguage);
+}
+
+function getOneSkyProjectIdForSheet(sheetName) {
+    return conf.sheets.find((sheet) => sheet.name === sheetName)
+        ?.oneSkyProjectId;
+}
+
+function getTranslationsDirPath() {
+    return path.resolve(
+        process.cwd(),
+        getConfigDirname(),
+        conf.outputDir,
+        "translations"
+    );
 }
 
 function getOutputDirPath(language) {
@@ -157,17 +162,41 @@ function getOutputDirPath(language) {
     );
 }
 
+function getNativeLanguage() {
+    return conf.nativeLanguage;
+}
+
+function getNativeLanguageName() {
+    return ISO6391.getName(conf.nativeLanguage);
+}
+
+function getBaseLanguage() {
+    return conf.baseLanguage;
+}
+
+function getBaseLanguageName() {
+    return ISO6391.getName(conf.baseLanguage);
+}
+
 module.exports = {
     ...conf,
-    commonValuesColumnName,
     validate,
     validateOneSkyConfiguration,
+    getSheets,
     hasPlurals,
-    getPluralsPath,
+    getPluralsOneSkyProjectId,
+    getPluralsFilePath,
     getPluralsFileName,
+    getTranslationsDirPath,
     getOutputDirPath,
-    getOneSkyProjects,
-    getOneSkyPluralsProjectId,
     getWebParameterType,
-    getSupportedLanguages
+    getSupportedLanguages,
+    getNonBaseLanguages,
+    getOneSkyProjectIdForSheet,
+    getOneSkyApiKey,
+    getOneSkyApiSecret,
+    getNativeLanguage,
+    getNativeLanguageName,
+    getBaseLanguage,
+    getBaseLanguageName
 };

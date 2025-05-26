@@ -1,62 +1,56 @@
-module.exports = function checkForDuplicates(localizations, warningLogger, { checkIds = true, checkKeys = true } = {}) {
+module.exports = function checkForDuplicates(
+    projectSheets,
+    warningLogger,
+    { checkIds = true, checkKeys = true, checkValues = true } = {}
+) {
+    const allStrings = projectSheets.reduce((acc, projectSheet) => {
+        return [...acc, ...projectSheet.getStrings()];
+    }, []);
+
     if (checkIds) {
-        const idsDuplicates = checkIdsDuplicatesInLocalizations(localizations);
+        const idsDuplicates = checkIdsDuplicatesInLocalizations(allStrings);
         if (idsDuplicates.length > 0) {
-            throw new Error(`Found id duplicates: ${idsDuplicates.join()}`);
+            throw new Error(`Found duplicated ids: ${idsDuplicates.join()}`);
         }
     }
-    
+
     if (checkKeys) {
-        const keysDuplicates = checkKeysDuplicatesInLocalizations(localizations);
+        const platformStrings = projectSheets.reduce((acc, projectSheet) => {
+            return [...acc, ...projectSheet.getPlatformStrings()];
+        }, []);
+        const keysDuplicates =
+            checkKeysDuplicatesInLocalizations(platformStrings);
         if (keysDuplicates.length > 0) {
-            throw new Error(
-                `Found localization keys duplicates: ${keysDuplicates.join()}`
+            throw new Error(`Found duplicated keys: ${keysDuplicates.join()}`);
+        }
+    }
+
+    if (checkValues) {
+        const valuesDuplicates =
+            checkValuesDuplicatesInLocalizations(allStrings);
+        if (valuesDuplicates.length > 0 && warningLogger) {
+            warningLogger(
+                `Found duplicated strings: ${valuesDuplicates.join()}`
             );
         }
     }
-
-    const valuesDuplicates = checkValuesDuplicatesInLocalizations(
-        localizations
-    );
-    const stringsWithBothValues = checkBothValues(localizations);
-    
-    if (valuesDuplicates.length > 0 && warningLogger) {
-        warningLogger(
-            `Found localization duplicates: ${valuesDuplicates.join()}`
-        );
-    }
-    if (stringsWithBothValues.length > 0 && warningLogger) {
-        warningLogger(
-            `Found strings with common and app specific values: ${stringsWithBothValues.join()}`
-        );
-    }
 };
 
-function checkIdsDuplicatesInLocalizations(localizations) {
-    const localizationIds = localizations.map(
-        (localization) => localization.id
-    );
-    return duplicates(localizationIds);
+function checkIdsDuplicatesInLocalizations(strings) {
+    const stringsIds = strings.map((string) => string.id);
+    return findDuplicates(stringsIds);
 }
 
-function checkKeysDuplicatesInLocalizations(localizations) {
-    const localizationKeys = localizations.map(
-        (localization) => localization.key
-    );
-    return duplicates(localizationKeys);
+function checkKeysDuplicatesInLocalizations(strings) {
+    const keys = strings.map((string) => string.key);
+    return findDuplicates(keys);
 }
 
-function checkValuesDuplicatesInLocalizations(localizations) {
-    const localizationValues = localizations
-        .filter((localization) => !localization.allowDuplicates)
-        .map((localization) => localization.value);
-    return duplicates(localizationValues);
-}
-
-function checkBothValues(localizations) {
-    return localizations
-        .filter((localization) => localization.hasBothValues)
-        .map((localization) => localization.id);
+function checkValuesDuplicatesInLocalizations(strings) {
+    const keys = strings
+        .filter((string) => !string.allowDuplicates)
+        .map((string) => string.value);
+    return findDuplicates(keys);
 }
 
 function count(values) {
@@ -66,7 +60,7 @@ function count(values) {
     );
 }
 
-function duplicates(values) {
+function findDuplicates(values) {
     const valuesCount = count(values);
     return Object.keys(valuesCount).filter((a) => valuesCount[a] > 1);
 }

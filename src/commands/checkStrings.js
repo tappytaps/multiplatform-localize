@@ -1,17 +1,23 @@
 const conf = require("../config");
-const strings = require("../strings");
 const spinner = require("../spinner");
 const oneSky = require("../onesky");
+const ProjectSheet = require("../sheets/ProjectSheet");
 
 module.exports = async function checkStrings() {
-    conf.validate();
-    conf.validateOneSkyConfiguration();
-
     try {
-        spinner.start("Downloading xlsx strings");
-        const originalStrings = await strings.getAllStrings();
+        spinner.start("Downloading sheets file...");
+
+        const projectSheets = await ProjectSheet.downloadSheets({
+            validateValues: false
+        });
+
+        const originalStrings = projectSheets.reduce(
+            (acc, sheet) => [...acc, ...sheet.getOneSkyStrings()],
+            []
+        );
 
         spinner.start("Downloading OneSky strings");
+
         const oneSkyStrings = await oneSky.getLocalizedStrings(
             conf.baseLanguage
         );

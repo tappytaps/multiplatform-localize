@@ -26,25 +26,43 @@ $ code .stringsgenrc
 Run strings generator:
 
 ```
-$ stringsgen gen
+$ stringsgen generate
 ```
 
 Upload strings to OneSky:
 
 ```
-$ stringsgen up
+$ stringsgen upload-strings
+```
+
+Upload plurals to OneSky:
+
+```
+$ stringsgen upload-plurals
 ```
 
 Download translated strings from OneSky:
 
 ```
-$ stringsgen down
+$ stringsgen download
 ```
 
 Check not used strings on OneSky:
 
 ```
 $ stringsgen check
+```
+
+Translate strings using AI:
+
+```
+$ stringsgen translate
+```
+
+Upload AI translated strings to OneSky:
+
+```
+$ stringsgen upload-translations
 ```
 
 # Configuration
@@ -55,54 +73,48 @@ You provide your configuration via .stringsgenrc file.
 {
     "xlsxUrl": "your_url_for_xlsx_file",
     "platform": "ios",
-    "idColumnName": "id",
-    "keysColumnName": "key_ios",
-    "valuesColumnName": "value",
-    "allowDuplicatesColumnName": "allow_duplicates",
-    "descriptionColumnName": "description",
-    "isHtmlColumnName": "is_html",
-    "isFinalColumnName": "is_final",
-    "baseLanguage": "en",
     "outputDir": ".",
     "outputName": "Localizable.strings",
-    "inputPlurals": "Localizable.stringsdict",
     "webParameterType": "value",
-    "oneSky": {
-        "secret": "TOP_SECRET",
-        "apiKey": "YOUR_API_KEY",
-        "projectId": "YOUR_PROJECT_ID"
+    "baseLanguage": "en", // Language of strings in xlsx sheet
+    "nativeLanguage": "cs", // Used as default language for AI translation
+    "languages": ["en", "cs", "it"],
+    "columns": {
+        "key": "key",
+        "isFinal": "is_final",
+        "isHtml": "is_html",
+        "allowDuplicates": "allow_duplicates",
+        "description": "description"
+    },
+    "projects": [
+        {
+            "oneSkyProjectId": "YOUR_PROJECT_ID",
+            "sheetName": "YOUR_SHEET_NAME",
+            "valueColumnName": "value"
+        }
+    ],
+    "plurals": {
+        "oneSkyProjectId": "YOUR_PROJECT_ID",
+        "inputFile": "./Localizable.stringsdict"
     }
 }
 ```
 
--   **platform**
-    -   values: ios, android, web
--   **webParameterType**
-    -   only for web
-    -   values: value, tag
-    -   default: value
+You also need to set these environment variables:
 
-If you want to split your strings into **common** and **app specific** OneSky projects:
-
-```json
-{
-    "appSpecificValuesColumnName": "value_APP_NAME",
-    "oneSky": {
-        "secret": "TOP_SECRET",
-        "apiKey": "YOUR_API_KEY",
-        "projects": [
-            {
-                "type": "common",
-                "id": "COMMON_PROJECT_ID"
-            },
-            {
-                "type": "app_specific",
-                "id": "APP_SPECIFIC_PROJECT_ID"
-            }
-        ]
-    }
-}
+```bash
+export ONESKY_API_KEY="your_api_key"
+export ONESKY_API_SECRET="your_api_secret"
+export OPENAI_API_KEY="your_api_key" # Only for AI translation
+export DEEPSEEK_API_KEY="your_api_key" # Only for AI translation
 ```
+
+- **platform**
+    - values: ios, android, web
+- **webParameterType**
+    - only for web
+    - values: value, tag
+    - default: value
 
 # Spreadsheet requirements
 
@@ -112,12 +124,12 @@ The sample spreadsheet contains prepared autoincrement id generator. If you want
 
 ## Sheet columns
 
--   First row of each sheet should define column names.
--   Column names should be same across all sheets.
--   `idColumnName` => Unique string identifier.
--   `keysColumnName` => String key. Must be unique, otherwise the strings generator will end with error.
--   `valuesColumnName` => String value. Doesn't has to be unique, but the strings generator will warn your if there are any duplicates.
--   `appSpecificValuesColumnName` => App specific string value. Required only if you want to split your strings in OneSky.
--   `allowDuplicatesColumnName` => If the column contains **TRUE**, the strings generator will not show warnings for duplicate in `valuesColumnName` column for given string.
--   `descriptionColumnName` => Description for string value, if needed.
--   `isHtmlColumnName` => If the column contains **TRUE**, the strings generator will handle a string value in special way (Android).
+- First row of each sheet should define column names.
+- Column names should be same across all sheets.
+- `id` => Unique string identifier.
+- `key` => String key. Must be unique, otherwise the strings generator will end with error.
+- `allowDuplicates` => If the column contains **TRUE**, the strings generator will not show warnings for duplicate in `valuesColumnName` column for given string.
+- `description` => Description for string value, if needed.
+- `isHtml` => If the column contains **TRUE**, the strings generator will handle a string value in special way (Android).
+- `isFinal` => If the column contains **TRUE**, the strings generator will upload the string to OneSky.
+- `aiTranslationDescription` => Description of the string for AI translations.

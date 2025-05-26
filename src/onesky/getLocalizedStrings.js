@@ -4,17 +4,16 @@ const conf = require("../config");
 module.exports = async function getLocalizedStrings(language) {
     let strings = [];
 
-    for (const project of conf.getOneSkyProjects()) {
-        const projectFile = await client.getTranslationsFile(
+    for (const sheet of conf.getSheets()) {
+        const translations = await client.getTranslations(
             language,
-            project.id
+            sheet.oneSkyProjectId
         );
-
-        if (projectFile) {
-            const projectStrings = Object.keys(projectFile).map(
+        if (translations) {
+            const projectStrings = Object.keys(translations).map(
                 (translationId) => {
                     const id = translationId;
-                    const value = projectFile[translationId].trim();
+                    const value = translations[translationId].trim();
                     return { id, value };
                 }
             );

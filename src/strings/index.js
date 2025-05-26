@@ -1,6 +1,4 @@
 module.exports = {
-    getAllStrings: require("./getAllStrings"),
-    getPlatformStrings: require("./getPlatformStrings"),
-    getLocalizedStrings: require("./getLocalizedStrings"),
+    mapLocalizedStringsForPlatform: require("./mapLocalizedStringsForPlatform"),
     prepareStringValueForPlatform: require("./prepareStringValueForPlatform")
 };

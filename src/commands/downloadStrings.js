@@ -3,22 +3,29 @@ const oneSky = require("../onesky");
 const strings = require("../strings");
 const spinner = require("../spinner");
 const files = require("../files");
+const ProjectSheet = require("../sheets/ProjectSheet");
 
 module.exports = async function downloadStrings() {
-    conf.validate();
-    conf.validateOneSkyConfiguration();
-
     try {
-        spinner.start("Downloading strings");
-        const originalStrings = await strings.getPlatformStrings();
+        spinner.start("Downloading sheets file...");
+
+        const projectSheets = await ProjectSheet.downloadSheets();
+
+        const platformStrings = projectSheets.reduce(
+            (acc, sheet) => [...acc, ...sheet.getPlatformStrings()],
+            []
+        );
+
         spinner.succeed();
 
         spinner.start("Getting languages");
-        
-        const languages = conf.getSupportedLanguages() ?? await oneSky.getLanguages();
-        spinner.succeed(`Getting languages ${languages.join(" ")}`);
 
-        await downloadLocalizedStrings(originalStrings, languages);
+        const languages =
+            conf.getSupportedLanguages() ?? (await oneSky.getLanguages());
+
+        spinner.succeed(`Getting languages: ${languages.join(" ")}`);
+
+        await downloadLocalizedStrings(platformStrings, languages);
         await downloadLocalizedPlurals(languages);
     } catch (error) {
         spinner.fail(error.message);
@@ -33,11 +40,13 @@ async function downloadLocalizedStrings(originalStrings, languages) {
             `Downloading localized strings: ${language} (${languageCount}/${languages.length})`
         );
 
-        const localizedStrings = await strings.getLocalizedStrings(
+        const localizedStrings = await oneSky.getLocalizedStrings(language);
+        const localizedPlatformStrings = strings.mapLocalizedStringsForPlatform(
             originalStrings,
-            language
+            localizedStrings
         );
-        await files.exportStrings(localizedStrings, language);
+
+        await files.exportStrings(localizedPlatformStrings, language);
 
         languageCount += 1;
     }

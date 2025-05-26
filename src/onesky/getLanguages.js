@@ -4,8 +4,10 @@ const conf = require("../config");
 module.exports = async function getLanguages() {
     let languages = [];
 
-    for (const project of conf.getOneSkyProjects()) {
-        const projectLanguages = await client.getLanguages(project.id);
+    for (const sheet of conf.getSheets()) {
+        const projectLanguages = await client.getLanguages(
+            sheet.oneSkyProjectId
+        );
         languages = [...languages, ...projectLanguages];
     }
 

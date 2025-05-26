@@ -1,35 +1,51 @@
 const onesky = require("@brainly/onesky-utils");
+var StringsFile = require("strings-file");
 
 const conf = require("../config");
 
 module.exports = {
     uploadTranslations,
+    getTranslations,
     uploadStringsdict,
     uploadAndroidXml,
     uploadHierarchicalJson,
     getLanguages,
-    getTranslationsFile,
     getFile
 };
 
 function getOptions(options) {
     return {
-        secret: conf.oneSky.secret,
-        apiKey: conf.oneSky.apiKey,
+        secret: conf.getOneSkyApiSecret(),
+        apiKey: conf.getOneSkyApiKey(),
         ...options
     };
 }
 
-async function uploadTranslations(translations, projectId) {
+async function uploadTranslations(translations, projectId, language) {
+    const content = translations.reduce((acc, string) => {
+        return acc + `"${string.id}" = "${string.value}";\n`;
+    }, "");
     const options = getOptions({
         projectId,
-        language: conf.baseLanguage,
-        fileName: "translations.json",
-        format: "HIERARCHICAL_JSON",
-        content: JSON.stringify(translations),
+        language,
+        fileName: `translations.strings`,
+        format: "IOS_STRINGS",
+        content,
         keepStrings: true
     });
     await onesky.postFile(options);
+}
+
+async function getTranslations(language, projectId) {
+    const translations = await getFile(
+        language,
+        "translations.strings",
+        projectId
+    );
+    if (translations) {
+        return StringsFile.parse(translations);
+    }
+    return {};
 }
 
 async function uploadStringsdict(content, fileName, projectId) {
@@ -77,23 +93,6 @@ async function getLanguages(projectId) {
     const codes = data.map((language) => language.code);
 
     return codes;
-}
-
-async function getTranslationsFile(language, projectId) {
-    const translations = await getFile(
-        language,
-        "translations.json",
-        projectId
-    );
-
-    if (translations) {
-        const json = JSON.parse(translations);
-        Object.keys(json).forEach((key) => {
-            json[key] = json[key].replace(/\n/g, "\\n");
-        });
-        return json;
-    }
-    return null;
 }
 
 async function getFile(language, fileName, projectId) {
