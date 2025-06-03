@@ -2,6 +2,8 @@ const onesky = require("@brainly/onesky-utils");
 var StringsFile = require("strings-file");
 
 const conf = require("../config");
+const { prepareStringValueForPlatform } = require("../strings");
+const PlatformKey = require("../PlatformKey");
 
 module.exports = {
     uploadTranslations,
@@ -23,7 +25,10 @@ function getOptions(options) {
 
 async function uploadTranslations(translations, projectId, language) {
     const content = translations.reduce((acc, string) => {
-        return acc + `"${string.id}" = "${string.value}";\n`;
+        return (
+            acc +
+            `"${string.id}" = "${prepareStringValueForPlatform(string.value, PlatformKey.ios)}";\n`
+        );
     }, "");
     const options = getOptions({
         projectId,
