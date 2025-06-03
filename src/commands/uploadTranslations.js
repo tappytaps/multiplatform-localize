@@ -1,5 +1,3 @@
-const ISO6391 = require("iso-639-1");
-
 const fs = require("fs/promises");
 
 const conf = require("../config");
@@ -7,6 +5,7 @@ const xlsx = require("../xlsx");
 const path = require("path");
 const { client: oneSkyClient } = require("../onesky");
 const spinner = require("../spinner");
+const languageCodes = require("../utils/language-codes");
 
 module.exports = async function uploadTranslations() {
     try {
@@ -46,8 +45,8 @@ module.exports = async function uploadTranslations() {
             const xlsxFile = await xlsx.read(filePath);
 
             for (const sheet of xlsxFile) {
-                const languageName = sheet.name;
-                const languageCode = ISO6391.getCode(languageName);
+                const languageCode = sheet.name;
+                const languageName = languageCodes.getName(languageCode);
 
                 const localizedStrings = sheet.data
                     .slice(1)

@@ -2,7 +2,6 @@ const path = require("path");
 const fs = require("fs/promises");
 
 const inquirer = require("inquirer").default;
-const ISO6391 = require("iso-639-1");
 
 const xlsx = require("../xlsx");
 const conf = require("../config");
@@ -11,6 +10,7 @@ const OpenAITranslator = require("../trasnlators/openai");
 const oneSkyClient = require("../onesky/client");
 const ProjectSheet = require("../sheets/ProjectSheet");
 const spinner = require("../spinner");
+const languageCodes = require("../utils/language-codes");
 
 const { OPENAI_API_KEY, DEEPSEEK_API_KEY, OLLAMA_HOST } = process.env;
 
@@ -90,7 +90,7 @@ async function _translateStrings(options, translator, languages) {
             for (const languageCode of languages) {
                 let translatedStringsCount = 0;
 
-                const targetLanguageName = ISO6391.getName(languageCode);
+                const targetLanguageName = languageCodes.getName(languageCode);
                 const targetLanguageStringsData = [
                     ["id", "original", "translated"]
                 ];
@@ -122,7 +122,7 @@ async function _translateStrings(options, translator, languages) {
                 }
 
                 translatedXlsxData.push({
-                    name: targetLanguageName,
+                    name: languageCode,
                     data: targetLanguageStringsData
                 });
 

@@ -1,7 +1,7 @@
 const path = require("path");
 
 const rc = require("rc");
-const ISO6391 = require("iso-639-1");
+const languageCodes = require("./utils/language-codes");
 
 const PlatformKey = require("./PlatformKey");
 const WebParameterType = require("./WebParameterType");
@@ -167,7 +167,7 @@ function getNativeLanguage() {
 }
 
 function getNativeLanguageName() {
-    return ISO6391.getName(conf.nativeLanguage);
+    return languageCodes.getName(conf.nativeLanguage);
 }
 
 function getBaseLanguage() {
@@ -175,7 +175,7 @@ function getBaseLanguage() {
 }
 
 function getBaseLanguageName() {
-    return ISO6391.getName(conf.baseLanguage);
+    return languageCodes.getName(conf.baseLanguage);
 }
 
 module.exports = {
