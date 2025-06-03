@@ -11,7 +11,7 @@ const config = require("./src/config");
 //
 
 program.version(version);
-program.option("-c, --config", "Path to configuration file");
+program.option("-c, --config <path>", "Path to configuration file");
 
 const defaultSheets = (config.sheets ?? []).map((sheet) => sheet.name);
 
