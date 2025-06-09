@@ -3,6 +3,7 @@ const prepareStringValueForPlatform = require("../strings/prepareStringValueForP
 const spinner = require("../spinner");
 const xlsx = require("../xlsx");
 const checkForDuplicates = require("../sheets/checkForDuplicates");
+const oneSkyClient = require("../onesky/client");
 
 class ProjectSheet {
     constructor(name, data, valueColumnName, oneSkyProjectId) {
@@ -38,6 +39,10 @@ class ProjectSheet {
 
     getOneSkyStrings() {
         return this.getStrings().filter((string) => string.isFinal);
+    }
+
+    async getOneSkyLanguages() {
+        return await oneSkyClient.getLanguages(this.oneSkyProjectId);
     }
 
     getStrings() {

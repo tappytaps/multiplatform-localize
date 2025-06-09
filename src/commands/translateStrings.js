@@ -32,11 +32,7 @@ module.exports = async function translateStrings(options) {
             case "translateAll":
                 {
                     const translator = await selectTranslator();
-                    await _translateStrings(
-                        options,
-                        translator,
-                        conf.getNonBaseLanguages()
-                    );
+                    await _translateStrings(options, translator);
                 }
                 break;
             default:
@@ -86,6 +82,26 @@ async function _translateStrings(options, translator, languages) {
             );
 
             const translatedXlsxData = [];
+
+            languages ??= await projectSheet.getOneSkyLanguages();
+            languages = languages.filter(
+                (language) => language !== conf.baseLanguage
+            );
+
+            if (languages.length === 0) {
+                spinner.fail(
+                    `No languages to translate in ${projectSheet.name}`
+                );
+                continue;
+            } else {
+                spinner.info(
+                    `Will translate strings in ${projectSheet.name} to ${languages.length} languages: ${languages
+                        .map(
+                            (lang) => `${languageCodes.getName(lang)} (${lang})`
+                        )
+                        .join(", ")}`
+                );
+            }
 
             for (const languageCode of languages) {
                 let translatedStringsCount = 0;
