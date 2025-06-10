@@ -72,6 +72,7 @@ You provide your configuration via .stringsgenrc file.
 ```json
 {
     "xlsxUrl": "your_url_for_xlsx_file",
+    "glossaryUrl": "your_url_for_glossary_xlsx_file"
     "platform": "ios",
     "outputDir": ".",
     "outputName": "Localizable.strings",
@@ -108,10 +109,13 @@ export ONESKY_API_KEY="your_api_key"
 export ONESKY_API_SECRET="your_api_secret"
 export OPENAI_API_KEY="your_api_key" # Only for AI translation
 export DEEPSEEK_API_KEY="your_api_key" # Only for AI translation
+export OLLAMA_HOST="http://localhost:11434" # Only for AI translation
 ```
 
 - **xlsxUrl**
     - URL to XLSX file with strings
+- **glossaryUrl**
+    - URL to XLSX file with strings glossary from OneSky
 - **platform**
     - values: ios, android, web
 - **outputDir**
