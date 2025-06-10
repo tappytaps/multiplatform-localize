@@ -23,7 +23,10 @@ module.exports = async function downloadStrings() {
         spinner.start("Getting languages");
 
         const languages =
-            conf.getSupportedLanguages() ?? (await oneSky.getLanguages());
+            conf.getSupportedLanguages() ??
+            (await ProjectSheet.getOneSkyLanguages(projectSheets)).map(
+                (language) => language.code
+            );
 
         spinner.succeed(`Getting languages: ${languages.join(" ")}`);
 

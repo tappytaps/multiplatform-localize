@@ -44,13 +44,18 @@ module.exports = async function uploadTranslations() {
 
             const xlsxFile = await xlsx.read(filePath);
 
-            for (const sheet of xlsxFile) {
-                const languageCode = sheet.name;
+            const translationsSheet = xlsxFile[0];
+            const translationsSheetHeader = translationsSheet.data[0];
+            const translationsSheetData = translationsSheet.data.slice(1);
+
+            for (let i = 2; i < translationsSheetHeader.length; i++) {
+                const languageCode = translationsSheetHeader[i];
                 const languageName = languageCodes.getName(languageCode);
 
-                const localizedStrings = sheet.data
-                    .slice(1)
-                    .map((row) => ({ id: row[0], value: row[2] }));
+                const localizedStrings = translationsSheetData.map((row) => ({
+                    id: row[0],
+                    value: row[i]
+                }));
 
                 spinner.start(
                     `Uploading ${localizedStrings.length} ${languageName} translations to ${fileName}...`

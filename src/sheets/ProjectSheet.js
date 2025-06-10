@@ -123,6 +123,19 @@ class ProjectSheet {
 
         return projectSheets;
     }
+
+    static async getOneSkyLanguages(projectSheets) {
+        const languages = [];
+        for (const sheet of projectSheets) {
+            const sheetLanguages = await sheet.getOneSkyLanguages();
+            for (const language of sheetLanguages) {
+                if (!languages.find((l) => l.code === language.code)) {
+                    languages.push(language);
+                }
+            }
+        }
+        return languages;
+    }
 }
 
 module.exports = ProjectSheet;

@@ -6,12 +6,23 @@ function systemTranslationPrompt(baseLanguage, targetLanguage) {
     - The description is meant for translation context and should not be translated.
     - The desctiption is optional.
     - The output should be a JSON object with the same id and the translated text.
-    - Do not remove any parameters from the translated text.
-    `;
+    - Do not remove any parameters from the translated text.`;
 }
 
-function userTranslationPrompt(textToTranslate) {
-    return `Translate the following JSON: ${JSON.stringify(textToTranslate)}.`;
+function userTranslationPrompt(textToTranslate, glossary) {
+    let prompt = `Translate the following JSON: ${JSON.stringify(textToTranslate)}.`;
+    if (glossary) {
+        const translationGlossary = Object.fromEntries(
+            Object.entries(glossary).filter(([key]) => {
+                return textToTranslate.text.includes(key);
+            })
+        );
+        if (Object.keys(translationGlossary).length > 0) {
+            prompt += `\nFor the translation use the following glossary JSON: ${JSON.stringify(translationGlossary)}
+            - The glossary is an JSON object where the key is the phrase that should be replaced with the value during the translation.`;
+        }
+    }
+    return prompt;
 }
 
 module.exports = {

@@ -10,8 +10,9 @@ const config = require("./src/config");
 // Program Definition
 //
 
-program.version(version);
-program.option("-c, --config <path>", "Path to configuration file");
+program
+    .version(version)
+    .option("-c, --config <path>", "Path to configuration file");
 
 const defaultSheets = (config.sheets ?? []).map((sheet) => sheet.name);
 
@@ -59,6 +60,7 @@ program
         parseSheetOption,
         defaultSheets
     )
+    .option("-v, --verbose", "Enables verbose mode", false)
     .action(commands.translateStrings);
 
 program

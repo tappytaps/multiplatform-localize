@@ -4,6 +4,7 @@ var StringsFile = require("strings-file");
 const conf = require("../config");
 const { prepareStringValueForPlatform } = require("../strings");
 const PlatformKey = require("../PlatformKey");
+const OneSkyLanguage = require("./OneSkyLanguage");
 
 module.exports = {
     uploadTranslations,
@@ -95,9 +96,8 @@ async function getLanguages(projectId) {
     });
     const response = await onesky.getLanguages(options);
     const { data } = JSON.parse(response);
-    const codes = data.map((language) => language.code);
 
-    return codes;
+    return data.map((languageData) => new OneSkyLanguage(languageData));
 }
 
 async function getFile(language, fileName, projectId) {

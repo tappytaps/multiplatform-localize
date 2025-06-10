@@ -1,10 +1,13 @@
 const { Ollama } = require("ollama");
+const chalk = require("chalk");
 
 const prompts = require("./prompts");
 const spinner = require("../spinner");
+const Translator = require("./Translator");
 
-class OllamaTranslator {
+class OllamaTranslator extends Translator {
     constructor({ host, model } = {}) {
+        super();
         this.model = model;
         this.ollama = new Ollama({ host });
     }
@@ -23,21 +26,23 @@ class OllamaTranslator {
         }
     }
 
-    async translate({ textToTranslate, baseLanguage, targetLanguage }) {
+    async translate({
+        textToTranslate,
+        baseLanguage,
+        targetLanguage,
+        glossary,
+        verbose = false
+    }) {
         try {
-            const messages = [
-                {
-                    role: "system",
-                    content: prompts.systemTranslationPrompt(
-                        baseLanguage,
-                        targetLanguage
-                    )
-                },
-                {
-                    role: "user",
-                    content: prompts.userTranslationPrompt(textToTranslate)
-                }
-            ];
+            const messages = this.getTranslationMessages(
+                textToTranslate,
+                baseLanguage,
+                targetLanguage,
+                glossary
+            );
+            if (verbose) {
+                this.debugPrintTranslation(textToTranslate, messages);
+            }
             const response = await this.ollama.chat({
                 model: this.model,
                 messages,

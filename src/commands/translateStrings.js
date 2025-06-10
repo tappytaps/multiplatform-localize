@@ -5,8 +5,8 @@ const inquirer = require("inquirer").default;
 
 const xlsx = require("../xlsx");
 const conf = require("../config");
-const OllamaTranslator = require("../trasnlators/ollama");
-const OpenAITranslator = require("../trasnlators/openai");
+const OllamaTranslator = require("../trasnlators/OllamaTranslator");
+const OpenAITranslator = require("../trasnlators/OpenAITranslator");
 const oneSkyClient = require("../onesky/client");
 const ProjectSheet = require("../sheets/ProjectSheet");
 const spinner = require("../spinner");
@@ -62,8 +62,9 @@ async function _translateStrings(options, translator, languages) {
         );
 
         const projectSheetStrings = projectSheet.getOneSkyStrings();
+        const projectOneSkyLanguages = await projectSheet.getOneSkyLanguages();
 
-        const oneSkyStrings = await oneSkyClient.getTranslations(
+        const nativeLanguageOneSkyStrings = await oneSkyClient.getTranslations(
             conf.nativeLanguage,
             projectSheet.oneSkyProjectId
         );
@@ -71,7 +72,7 @@ async function _translateStrings(options, translator, languages) {
         spinner.succeed();
 
         const notTranslatedProjectSheetStrings = projectSheetStrings.filter(
-            (string) => oneSkyStrings[string.id] === undefined
+            (string) => nativeLanguageOneSkyStrings[string.id] === undefined
         );
 
         if (notTranslatedProjectSheetStrings.length === 0) {
@@ -81,12 +82,14 @@ async function _translateStrings(options, translator, languages) {
                 `Found ${notTranslatedProjectSheetStrings.length} strings to translate in ${projectSheet.name}`
             );
 
-            const translatedXlsxData = [];
-
-            languages ??= await projectSheet.getOneSkyLanguages();
-            languages = languages.filter(
-                (language) => language !== conf.baseLanguage
-            );
+            languages ??= projectOneSkyLanguages.map((lang) => lang.code);
+            languages = languages
+                .filter((language) => language !== conf.baseLanguage)
+                .sort((a, b) => {
+                    if (a === conf.nativeLanguage) return -1; // 'a' is native language, comes first
+                    if (b === conf.nativeLanguage) return 1; // 'b' is native language, comes first
+                    return a.localeCompare(b); // sort alphabetically
+                });
 
             if (languages.length === 0) {
                 spinner.fail(
@@ -95,7 +98,7 @@ async function _translateStrings(options, translator, languages) {
                 continue;
             } else {
                 spinner.info(
-                    `Will translate strings in ${projectSheet.name} to ${languages.length} languages: ${languages
+                    `Will translate strings in ${projectSheet.name} to: ${languages
                         .map(
                             (lang) => `${languageCodes.getName(lang)} (${lang})`
                         )
@@ -103,13 +106,33 @@ async function _translateStrings(options, translator, languages) {
                 );
             }
 
+            const translatedStrings = notTranslatedProjectSheetStrings.reduce(
+                (acc, string) =>
+                    Object.assign(acc, {
+                        [string.id]: {
+                            original: string.value,
+                            translations: languages.reduce(
+                                (acc, langCode) =>
+                                    Object.assign(acc, {
+                                        [langCode]: ""
+                                    }),
+                                {}
+                            )
+                        }
+                    }),
+                {}
+            );
+
             for (const languageCode of languages) {
                 let translatedStringsCount = 0;
 
+                const oneSkyLanguage = projectOneSkyLanguages.find(
+                    (language) => language.code === languageCode
+                );
+
+                const languageGlossary = await oneSkyLanguage.getGlossary();
+
                 const targetLanguageName = languageCodes.getName(languageCode);
-                const targetLanguageStringsData = [
-                    ["id", "original", "translated"]
-                ];
 
                 spinner.start(
                     `Translating strings in ${projectSheet.name} to ${targetLanguageName}... (${translatedStringsCount}/${notTranslatedProjectSheetStrings.length})`
@@ -123,13 +146,13 @@ async function _translateStrings(options, translator, languages) {
                             description: string.aiTranslationDescription
                         },
                         baseLanguage: baseLanguageName,
-                        targetLanguage: targetLanguageName
+                        targetLanguage: targetLanguageName,
+                        glossary: languageGlossary,
+                        verbose: options.verbose
                     });
-                    targetLanguageStringsData.push([
-                        string.id,
-                        string.value,
-                        translatedString
-                    ]);
+
+                    translatedStrings[string.id].translations[languageCode] =
+                        translatedString;
 
                     translatedStringsCount += 1;
                     spinner.start(
@@ -137,21 +160,31 @@ async function _translateStrings(options, translator, languages) {
                     );
                 }
 
-                translatedXlsxData.push({
-                    name: languageCode,
-                    data: targetLanguageStringsData
-                });
-
                 spinner.succeed(
                     `Translating strings in ${projectSheet.name} to ${targetLanguageName}...`
                 );
+            }
+
+            const translatedXlsxData = [["id", "original", ...languages]];
+
+            for (const stringId of Object.keys(translatedStrings)) {
+                translatedXlsxData.push([
+                    stringId,
+                    translatedStrings[stringId].original,
+                    ...languages.map(
+                        (langCode) =>
+                            translatedStrings[stringId].translations[langCode]
+                    )
+                ]);
             }
 
             const outputDir = conf.getTranslationsDirPath();
             await fs.mkdir(outputDir, { recursive: true });
 
             const xlsxPath = path.join(outputDir, `${projectSheet.name}.xlsx`);
-            await xlsx.write(xlsxPath, translatedXlsxData);
+            await xlsx.write(xlsxPath, [
+                { name: "Translations", data: translatedXlsxData }
+            ]);
 
             spinner.succeed(`📂 ${xlsxPath}`);
         }
