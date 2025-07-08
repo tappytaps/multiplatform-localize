@@ -1,3 +1,5 @@
+const { table } = require("table");
+
 module.exports = function checkForDuplicates(
     projectSheets,
     warningLogger,
@@ -8,9 +10,11 @@ module.exports = function checkForDuplicates(
     }, []);
 
     if (checkIds) {
-        const idsDuplicates = checkIdsDuplicatesInLocalizations(allStrings);
-        if (idsDuplicates.length > 0) {
-            throw new Error(`Found duplicated ids: ${idsDuplicates.join()}`);
+        const duplicatedStrings = checkIdsDuplicatesInLocalizations(allStrings);
+        if (duplicatedStrings.length > 0) {
+            throw new Error(
+                `Found duplicated ids:\n${formatDuplicatedStrings(duplicatedStrings)}`
+            );
         }
     }
 
@@ -18,49 +22,63 @@ module.exports = function checkForDuplicates(
         const platformStrings = projectSheets.reduce((acc, projectSheet) => {
             return [...acc, ...projectSheet.getPlatformStrings()];
         }, []);
-        const keysDuplicates =
+        const duplicatedStrings =
             checkKeysDuplicatesInLocalizations(platformStrings);
-        if (keysDuplicates.length > 0) {
-            throw new Error(`Found duplicated keys: ${keysDuplicates.join()}`);
+        if (duplicatedStrings.length > 0) {
+            throw new Error(
+                `Found duplicated keys:\n${formatDuplicatedStrings(duplicatedStrings)}`
+            );
         }
     }
 
     if (checkValues) {
-        const valuesDuplicates =
+        const duplicatedStrings =
             checkValuesDuplicatesInLocalizations(allStrings);
-        if (valuesDuplicates.length > 0 && warningLogger) {
+        if (duplicatedStrings.length > 0 && warningLogger) {
             warningLogger(
-                `Found duplicated strings: ${valuesDuplicates.join()}`
+                `Found duplicated strings:\n${formatDuplicatedStrings(duplicatedStrings)}`
             );
         }
     }
 };
 
+function formatDuplicatedStrings(duplicatedStrings) {
+    const tableData = duplicatedStrings.reduce(
+        (acc, string) => [...acc, [string.id, string.key, string.value]],
+        [["id", "key", "value"]]
+    );
+    return table(tableData);
+}
+
 function checkIdsDuplicatesInLocalizations(strings) {
-    const stringsIds = strings.map((string) => string.id);
-    return findDuplicates(stringsIds);
+    return findDuplicates(strings, "id");
 }
 
 function checkKeysDuplicatesInLocalizations(strings) {
-    const keys = strings.map((string) => string.key);
-    return findDuplicates(keys);
+    return findDuplicates(strings, "key");
 }
 
 function checkValuesDuplicatesInLocalizations(strings) {
-    const keys = strings
-        .filter((string) => !string.allowDuplicates)
-        .map((string) => string.value);
-    return findDuplicates(keys);
+    return findDuplicates(
+        strings.filter((string) => !string.allowDuplicates),
+        "value"
+    );
 }
 
-function count(values) {
-    return values.reduce(
-        (a, b) => Object.assign(a, { [b]: (a[b] || 0) + 1 }),
+function count(strings, key) {
+    return strings.reduce(
+        (acc, string) =>
+            Object.assign(acc, {
+                [string[key]]: [...(acc[string[key]] || []), string]
+            }),
         {}
     );
 }
 
-function findDuplicates(values) {
-    const valuesCount = count(values);
-    return Object.keys(valuesCount).filter((a) => valuesCount[a] > 1);
+function findDuplicates(strings, key) {
+    const keysCount = count(strings, key);
+    return Object.keys(keysCount)
+        .map((k) => keysCount[k])
+        .filter((duplicates) => duplicates.length > 1)
+        .flat();
 }
