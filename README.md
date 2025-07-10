@@ -59,7 +59,8 @@ You provide your configuration via .stringsgenrc file.
 
 ```json
 {
-    "xlsxUrl": "your_url_for_xlsx_file",
+    "xlsxUrl": "YOUR_XLSX_FILE_URL",
+    "weblateUrl": "YOUR_WEBLATE_URL",
     "platform": "ios",
     "outputDir": ".",
     "outputName": "Localizable.strings",
@@ -98,6 +99,8 @@ export WEBLATE_API_KEY="your_api_key"
 
 - **xlsxUrl**
     - URL to XLSX file with strings
+- **weblateUrl**
+    - URL of your Weblate instance
 - **platform**
     - values: ios, android, web
 - **outputDir**
