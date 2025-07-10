@@ -1,4 +1,4 @@
-const { table } = require("table");
+const chalk = require("chalk");
 
 module.exports = function checkForDuplicates(
     projectSheets,
@@ -13,7 +13,7 @@ module.exports = function checkForDuplicates(
         const duplicatedStrings = checkIdsDuplicatesInLocalizations(allStrings);
         if (duplicatedStrings.length > 0) {
             throw new Error(
-                `Found duplicated ids:\n${formatDuplicatedStrings(duplicatedStrings)}`
+                `Found duplicated ids:\n${formatDuplicatedStrings(duplicatedStrings, "id")}`
             );
         }
     }
@@ -26,7 +26,7 @@ module.exports = function checkForDuplicates(
             checkKeysDuplicatesInLocalizations(platformStrings);
         if (duplicatedStrings.length > 0) {
             throw new Error(
-                `Found duplicated keys:\n${formatDuplicatedStrings(duplicatedStrings)}`
+                `Found duplicated keys:\n${formatDuplicatedStrings(duplicatedStrings, "key")}`
             );
         }
     }
@@ -36,18 +36,31 @@ module.exports = function checkForDuplicates(
             checkValuesDuplicatesInLocalizations(allStrings);
         if (duplicatedStrings.length > 0 && warningLogger) {
             warningLogger(
-                `Found duplicated strings:\n${formatDuplicatedStrings(duplicatedStrings)}`
+                `Found duplicated strings:\n${formatDuplicatedStrings(duplicatedStrings, "value")}`
             );
         }
     }
 };
 
-function formatDuplicatedStrings(duplicatedStrings) {
-    const tableData = duplicatedStrings.reduce(
-        (acc, string) => [...acc, [string.id, string.key, string.value]],
-        [["id", "key", "value"]]
-    );
-    return table(tableData);
+function formatDuplicatedStrings(duplicatedStrings, highlightedProperty) {
+    return duplicatedStrings.reduce((acc, string) => {
+        var result = `${acc}`;
+        result +=
+            (highlightedProperty === "id"
+                ? chalk.red(string.id)
+                : chalk.gray(string.id)) + chalk.gray(", ");
+        if (string.key) {
+            result +=
+                highlightedProperty === "key"
+                    ? chalk.red(string.key)
+                    : chalk.gray(string.key) + chalk.gray(", ");
+        }
+        result +=
+            highlightedProperty === "value"
+                ? chalk.red(string.value)
+                : chalk.gray(string.value);
+        return `${result}\n`;
+    }, "");
 }
 
 function checkIdsDuplicatesInLocalizations(strings) {

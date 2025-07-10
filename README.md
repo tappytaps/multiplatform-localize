@@ -29,40 +29,28 @@ Run strings generator:
 $ stringsgen generate
 ```
 
-Upload strings to OneSky:
+Upload strings to Weblate:
 
 ```
 $ stringsgen upload-strings
 ```
 
-Upload plurals to OneSky:
+Upload plurals to Weblate:
 
 ```
 $ stringsgen upload-plurals
 ```
 
-Download translated strings from OneSky:
+Download translated strings from Weblate:
 
 ```
 $ stringsgen download
 ```
 
-Check not used strings on OneSky:
+Check not used strings on Weblate:
 
 ```
 $ stringsgen check
-```
-
-Translate strings using AI:
-
-```
-$ stringsgen translate
-```
-
-Upload AI translated strings to OneSky:
-
-```
-$ stringsgen upload-translations
 ```
 
 # Configuration
@@ -72,13 +60,11 @@ You provide your configuration via .stringsgenrc file.
 ```json
 {
     "xlsxUrl": "your_url_for_xlsx_file",
-    "glossaryUrl": "your_url_for_glossary_xlsx_file"
     "platform": "ios",
     "outputDir": ".",
     "outputName": "Localizable.strings",
     "webParameterType": "value",
     "baseLanguage": "en",
-    "nativeLanguage": "cs",
     "languages": ["en", "cs", "it"],
     "columns": {
         "id": "id",
@@ -90,14 +76,16 @@ You provide your configuration via .stringsgenrc file.
     },
     "sheets": [
         {
-            "oneSkyProjectId": "YOUR_PROJECT_ID",
             "name": "YOUR_SHEET_NAME",
-            "valueColumn": "value"
+            "valueColumn": "value",
+            "weblateProjectSlug": "YOUR_PROJECT_SLUG",
+            "weblateComponentSlug": "YOUR_COMPONENT_SLUG"
         }
     ],
     "plurals": {
-        "oneSkyProjectId": "YOUR_PROJECT_ID",
-        "inputFile": "./Localizable.stringsdict"
+        "sourceFile": "./Localizable.stringsdict",
+        "weblateProjectSlug": "YOUR_PROJECT_SLUG",
+        "weblateComponentSlug": "YOUR_COMPONENT_SLUG"
     }
 }
 ```
@@ -105,17 +93,11 @@ You provide your configuration via .stringsgenrc file.
 You also need to set these environment variables:
 
 ```bash
-export ONESKY_API_KEY="your_api_key"
-export ONESKY_API_SECRET="your_api_secret"
-export OPENAI_API_KEY="your_api_key" # Only for AI translation
-export DEEPSEEK_API_KEY="your_api_key" # Only for AI translation
-export OLLAMA_HOST="http://localhost:11434" # Only for AI translation
+export WEBLATE_API_KEY="your_api_key"
 ```
 
 - **xlsxUrl**
     - URL to XLSX file with strings
-- **glossaryUrl**
-    - URL to XLSX file with strings glossary from OneSky
 - **platform**
     - values: ios, android, web
 - **outputDir**
@@ -128,31 +110,31 @@ export OLLAMA_HOST="http://localhost:11434" # Only for AI translation
     - default: value
 - **baseLanguage**
     - language of source strings in xlsx sheet
-- **nativeLanguage**
-    - used as default language for AI translation
 - **languages**
-    - supported languages that will be downloaded from OneSky
+    - supported languages that will be downloaded from Weblate
 - **columns**
     - names of columns in each sheet
-    - **id**: unique string IDs, will be used for OneSky upload
+    - **id**: unique string IDs, will be used for Weblate upload
     - **key**:
         - string keys
         - will be used on platform when downloading or generating strings
         - must be unique, otherwise the strings generator will end with error
-    - **isFinal**: TRUE/FALSE, only final strings will be uploaded to OneSky
+    - **isFinal**: TRUE/FALSE, only final strings will be uploaded to Weblate
     - **isHtml**:
         - TRUE/FALSE, if string contains HTML tags
         - the strings generator will handle a string value in special way (Android)
     - **allowDuplicates**: if the column contains **TRUE**, the strings generator will not show warnings for duplicate in values column for given string
     - **aiTranslationDescription**: description of the string for AI translations.
 - **sheets**
-    - mapping of XLSX sheets to OneSky projects
-    - **oneSkyProjectId**: OneSky project ID
+    - mapping of XLSX sheets to Weblate projects
     - **name**: sheet name
     - **valueColumn**: column name with strings values
+    - **weblateProjectSlug**: Weblate project slug
+    - **weblateComponentSlug**: Weblate component slug
 - **plurals**
-    - **oneSkyProjectId**: OneSky project ID
-    - **inputFile**: source file with plural strings, the file will be uploaded to OneSky
+    - **inputFile**: source file with plural strings, the file will be uploaded to Weblate
+    - **weblateProjectSlug**: Weblate project slug
+    - **weblateComponentSlug**: Weblate component slug
 
 # Spreadsheet requirements
 

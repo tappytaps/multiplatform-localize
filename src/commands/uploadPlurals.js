@@ -1,8 +1,7 @@
 const fs = require("fs");
-const path = require("path");
 
 const conf = require("../config");
-const { client: oneSkyClient } = require("../onesky");
+const weblateClient = require("../weblate/client");
 const spinner = require("../spinner");
 
 module.exports = async function uploadStrings() {
@@ -10,41 +9,19 @@ module.exports = async function uploadStrings() {
         conf.validate();
 
         if (conf.hasPlurals()) {
-            spinner.start("Uploading plurals to OneSky");
+            spinner.start("Uploading plurals to Weblate");
 
             const pluralsFilePath = conf.getPluralsFilePath();
             const pluralsFileName = conf.getPluralsFileName();
-            const pluralsFileExtension = path.extname(pluralsFilePath);
             const pluralsContent = fs.readFileSync(pluralsFilePath, "utf8");
-            const pluralsProjectId = conf.getPluralsOneSkyProjectId();
 
-            switch (pluralsFileExtension) {
-                case ".stringsdict":
-                    await oneSkyClient.uploadStringsdict(
-                        pluralsContent,
-                        pluralsFileName,
-                        pluralsProjectId
-                    );
-                    break;
-                case ".xml":
-                    await oneSkyClient.uploadAndroidXml(
-                        pluralsContent,
-                        pluralsFileName,
-                        pluralsProjectId
-                    );
-                    break;
-                case ".json":
-                    await oneSkyClient.uploadHierarchicalJson(
-                        pluralsContent,
-                        pluralsFileName,
-                        pluralsProjectId
-                    );
-                    break;
-                default:
-                    throw new Error(
-                        `Unknown plurals file type ${pluralsFileExtension}`
-                    );
-            }
+            await weblateClient.postTranslationsFile(
+                conf.plurals.weblateProjectSlug,
+                conf.plurals.weblateComponentSlug,
+                conf.baseLanguage,
+                pluralsContent,
+                pluralsFileName
+            );
 
             spinner.succeed();
         } else {

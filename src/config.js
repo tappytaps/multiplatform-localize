@@ -24,18 +24,17 @@ const conf = rc("stringsgen", {
 function validate() {
     validateRequiredFields(["xlsxUrl", "platform", "outputDir", "outputName"]);
     validatePlatform();
-    validateOneSkyConfiguration();
+    validateWeblateConfiguration();
 }
 
-function validateOneSkyConfiguration() {
+function validateWeblateConfiguration() {
     validateRequiredFields(["xlsxUrl"]);
 
-    const apiKey = getOneSkyApiKey();
-    const apiSecret = getOneSkyApiSecret();
+    const apiKey = getWeblateApiKey();
 
-    if (!apiKey || !apiSecret) {
+    if (!apiKey) {
         console.error(
-            "😢 Missing OneSky API key or secret. Please set ONESKY_API_KEY and ONESKY_API_SECRET environment variables."
+            "😢 Missing Weblate API key. Please set WEBLATE_API_KEY environment variable."
         );
         process.exit(1);
     }
@@ -71,27 +70,23 @@ function validatePlatform() {
     }
 }
 
-function getOneSkyApiKey() {
-    return process.env.ONESKY_API_KEY;
+function getWeblateApiKey() {
+    return process.env.WEBLATE_API_KEY;
 }
 
-function getOneSkyApiSecret() {
-    return process.env.ONESKY_API_SECRET;
+function getWeblateUrl() {
+    return conf.weblateUrl;
 }
 
 function getSheets() {
     return conf.sheets;
 }
 
-function getPluralsOneSkyProjectId() {
-    return conf.plurals.oneSkyProjectId;
-}
-
 function getPluralsFilePath() {
     return path.resolve(
         process.cwd(),
         getConfigDirname(),
-        conf.plurals.inputFile
+        conf.plurals.sourceFile
     );
 }
 
@@ -119,9 +114,15 @@ function getNonBaseLanguages() {
     return conf.languages.filter((language) => language !== conf.baseLanguage);
 }
 
-function getOneSkyProjectIdForSheet(sheetName) {
-    return conf.sheets.find((sheet) => sheet.name === sheetName)
-        ?.oneSkyProjectId;
+function getWeblateProjectComponentForSheet(sheetName) {
+    const sheet = conf.sheets.find((sheet) => sheet.name === sheetName);
+    if (sheet) {
+        return {
+            projectSlug: sheet.weblateProjectSlug,
+            componentSlug: sheet.weblateComponentSlug
+        };
+    }
+    return null;
 }
 
 function getTranslationsDirPath() {
@@ -181,10 +182,9 @@ function getBaseLanguageName() {
 module.exports = {
     ...conf,
     validate,
-    validateOneSkyConfiguration,
+    validateWeblateConfiguration,
     getSheets,
     hasPlurals,
-    getPluralsOneSkyProjectId,
     getPluralsFilePath,
     getPluralsFileName,
     getTranslationsDirPath,
@@ -192,9 +192,9 @@ module.exports = {
     getWebParameterType,
     getSupportedLanguages,
     getNonBaseLanguages,
-    getOneSkyProjectIdForSheet,
-    getOneSkyApiKey,
-    getOneSkyApiSecret,
+    getWeblateProjectComponentForSheet,
+    getWeblateApiKey,
+    getWeblateUrl,
     getNativeLanguage,
     getNativeLanguageName,
     getBaseLanguage,

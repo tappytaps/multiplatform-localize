@@ -1,5 +1,5 @@
 const conf = require("../config");
-const oneSky = require("../onesky");
+const weblate = require("../weblate");
 const strings = require("../strings");
 const spinner = require("../spinner");
 const files = require("../files");
@@ -13,31 +13,25 @@ module.exports = async function downloadStrings() {
 
         const projectSheets = await ProjectSheet.downloadSheets();
 
-        const platformStrings = projectSheets.reduce(
-            (acc, sheet) => [...acc, ...sheet.getPlatformStrings()],
-            []
-        );
-
         spinner.succeed();
-
         spinner.start("Getting languages");
 
         const languages =
             conf.getSupportedLanguages() ??
-            (await ProjectSheet.getOneSkyLanguages(projectSheets)).map(
+            (await ProjectSheet.getLanguages(projectSheets)).map(
                 (language) => language.code
             );
 
         spinner.succeed(`Getting languages: ${languages.join(" ")}`);
 
-        await downloadLocalizedStrings(platformStrings, languages);
+        await downloadLocalizedStrings(projectSheets, languages);
         await downloadLocalizedPlurals(languages);
     } catch (error) {
         spinner.fail(error.message);
     }
 };
 
-async function downloadLocalizedStrings(originalStrings, languages) {
+async function downloadLocalizedStrings(projectSheets, languages) {
     let languageCount = 1;
 
     for (const language of languages) {
@@ -45,12 +39,17 @@ async function downloadLocalizedStrings(originalStrings, languages) {
             `Downloading localized strings: ${language} (${languageCount}/${languages.length})`
         );
 
-        const localizedStrings = await oneSky.getLocalizedStrings(language);
+        const originalStrings =
+            await ProjectSheet.getPlatformStrings(projectSheets);
+
+        const localizedStrings = await ProjectSheet.getLocalizedStrings(
+            projectSheets,
+            language
+        );
         const localizedPlatformStrings = strings.mapLocalizedStringsForPlatform(
             originalStrings,
             localizedStrings
         );
-
         await files.exportStrings(localizedPlatformStrings, language);
 
         languageCount += 1;
@@ -69,7 +68,11 @@ async function downloadLocalizedPlurals(languages) {
             `Downloading localized plurals: ${language} (${languageCount}/${languages.length})`
         );
 
-        const localizedPlurals = await oneSky.getLocalizedPlurals(language);
+        const localizedPlurals = await weblate.client.getTranslationsFile(
+            conf.plurals.weblateProjectSlug,
+            conf.plurals.weblateComponentSlug,
+            language
+        );
 
         if (localizedPlurals) {
             await files.exportFile(

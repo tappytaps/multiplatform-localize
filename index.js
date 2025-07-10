@@ -25,7 +25,7 @@ program
 program
     .command("upload-strings")
     .alias("up-strings")
-    .description("Upload strings to OneSky.")
+    .description("Upload strings to Weblate.")
     .option(
         "-s, --sheet <sheet...>",
         "Option to select specific sheets to upload",
@@ -37,36 +37,19 @@ program
 program
     .command("upload-plurals")
     .alias("up-plurals")
-    .description("Upload plural strings to OneSky.")
+    .description("Upload plural strings to Weblate.")
     .action(commands.uploadPlurals);
 
 program
     .command("download")
     .alias("down")
-    .description("Download translated strings from OneSky")
+    .description("Download translated strings from Weblate")
     .action(commands.downloadStrings);
 
 program
     .command("check")
-    .description("Compares string on OneSky with strings in xlsx table")
+    .description("Compares string on Weblate with strings in xlsx table")
     .action(commands.checkStrings);
-
-program
-    .command("translate")
-    .description("Translate strings using AI and upload them to OneSky")
-    .option(
-        "-s, --sheet <sheet...>",
-        "Option to select specific sheets to translate",
-        parseSheetOption,
-        defaultSheets
-    )
-    .option("-v, --verbose", "Enables verbose mode", false)
-    .action(commands.translateStrings);
-
-program
-    .command("upload-translations")
-    .description("Uploads AI translated strings to OneSky")
-    .action(commands.uploadTranslations);
 
 program.parse(process.argv);
 

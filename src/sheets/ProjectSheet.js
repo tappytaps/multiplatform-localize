@@ -3,14 +3,21 @@ const prepareStringValueForPlatform = require("../strings/prepareStringValueForP
 const spinner = require("../spinner");
 const xlsx = require("../xlsx");
 const checkForDuplicates = require("../sheets/checkForDuplicates");
-const oneSkyClient = require("../onesky/client");
+const weblateClient = require("../weblate/client");
 
 class ProjectSheet {
-    constructor(name, data, valueColumnName, oneSkyProjectId) {
+    constructor(
+        name,
+        data,
+        valueColumnName,
+        weblateProjectSlug,
+        weblateComponentSlug
+    ) {
         this.name = name;
         this.data = data;
         this.valueColumnName = valueColumnName;
-        this.oneSkyProjectId = oneSkyProjectId;
+        this.weblateProjectSlug = weblateProjectSlug;
+        this.weblateComponentSlug = weblateComponentSlug;
     }
 
     columnIndex(columnName) {
@@ -37,12 +44,22 @@ class ProjectSheet {
             });
     }
 
-    getOneSkyStrings() {
+    getFinalStrings() {
         return this.getStrings().filter((string) => string.isFinal);
     }
 
-    async getOneSkyLanguages() {
-        return await oneSkyClient.getLanguages(this.oneSkyProjectId);
+    async getLanguages() {
+        const translations = await weblateClient.getComponentTranslations(
+            this.weblateProjectSlug,
+            this.weblateComponentSlug
+        );
+        const languages = translations.results.map((translation) => {
+            return {
+                code: translation.language.code,
+                name: translation.language.name
+            };
+        });
+        return languages;
     }
 
     getStrings() {
@@ -84,8 +101,8 @@ class ProjectSheet {
     static async downloadSheets({
         filterSheets,
         validateIds = true,
-        validateKeys = true,
-        validateValues = true
+        validateKeys = false,
+        validateValues = false
     } = {}) {
         const xlsxFile = await xlsx.download(conf.xlsxUrl);
         let projectSheets = [];
@@ -100,7 +117,8 @@ class ProjectSheet {
                 name,
                 data,
                 sheet.valueColumn,
-                sheet.oneSkyProjectId
+                sheet.weblateProjectSlug,
+                sheet.weblateComponentSlug
             );
             projectSheets.push(projectSheet);
         }
@@ -124,17 +142,58 @@ class ProjectSheet {
         return projectSheets;
     }
 
-    static async getOneSkyLanguages(projectSheets) {
+    static async getLanguages(projectSheets) {
         const languages = [];
+        const languagesCount = {};
+
         for (const sheet of projectSheets) {
-            const sheetLanguages = await sheet.getOneSkyLanguages();
+            const sheetLanguages = await sheet.getLanguages();
             for (const language of sheetLanguages) {
+                if (languagesCount[language.code]) {
+                    languagesCount[language.code] += 1;
+                } else {
+                    languagesCount[language.code] = 1;
+                }
                 if (!languages.find((l) => l.code === language.code)) {
                     languages.push(language);
                 }
             }
         }
-        return languages;
+        return languages.filter((language) => {
+            return languagesCount[language.code] === projectSheets.length;
+        });
+    }
+
+    static async getPlatformStrings(projectSheets) {
+        const platformStrings = projectSheets.reduce(
+            (acc, sheet) => [...acc, ...sheet.getPlatformStrings()],
+            []
+        );
+        return platformStrings;
+    }
+
+    static async getLocalizedStrings(projectSheets, language) {
+        let strings = [];
+
+        for (const sheet of projectSheets) {
+            const translations = await weblateClient.getTranslations(
+                sheet.weblateProjectSlug,
+                sheet.weblateComponentSlug,
+                language
+            );
+            if (translations) {
+                const projectStrings = Object.keys(translations).map(
+                    (translationId) => {
+                        const id = translationId;
+                        const value = translations[translationId].trim();
+                        return { id, value };
+                    }
+                );
+                strings = [...strings, ...projectStrings];
+            }
+        }
+
+        return strings;
     }
 }
 

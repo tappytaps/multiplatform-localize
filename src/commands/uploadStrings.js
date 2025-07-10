@@ -1,5 +1,5 @@
 const conf = require("../config");
-const { client: oneSkyClient } = require("../onesky");
+const { client: weblateClient } = require("../weblate");
 const spinner = require("../spinner");
 const ProjectSheet = require("../sheets/ProjectSheet");
 
@@ -16,15 +16,16 @@ module.exports = async function uploadStrings(options) {
         spinner.succeed();
 
         for (const projectSheet of projectSheets) {
-            const projectSheetStrings = projectSheet.getOneSkyStrings();
+            const projectSheetStrings = projectSheet.getFinalStrings();
 
             spinner.start(
-                `Uploading ${projectSheet.name} strings (${projectSheetStrings.length}) to OneSky`
+                `Uploading ${projectSheet.name} strings (${projectSheetStrings.length}) to Weblate`
             );
 
-            await oneSkyClient.uploadTranslations(
+            await weblateClient.postTranslations(
                 projectSheetStrings,
-                projectSheet.oneSkyProjectId,
+                projectSheet.weblateProjectSlug,
+                projectSheet.weblateComponentSlug,
                 conf.baseLanguage
             );
 

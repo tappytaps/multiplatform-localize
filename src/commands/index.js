@@ -3,7 +3,5 @@ module.exports = {
     uploadStrings: require("./uploadStrings"),
     uploadPlurals: require("./uploadPlurals"),
     downloadStrings: require("./downloadStrings"),
-    checkStrings: require("./checkStrings"),
-    translateStrings: require("./translateStrings"),
-    uploadTranslations: require("./uploadTranslations")
+    checkStrings: require("./checkStrings")
 };
