@@ -11,7 +11,8 @@ const commonSpecialCharacters = [
     {
         expression: /"/,
         replacement: '\\"'
-    }
+    },
+    { expression: /\n/, replacement: "\\n" }
 ];
 
 const cdataSpecialCharacters = [
@@ -54,7 +55,8 @@ function replaceFormatSpecifiers(text, platform) {
             let updatedText = text;
 
             const formatSpecifiersExpression = /(%@|%d|%f)/;
-            const formatSpecifiersExpressionPositional = /(%((\d)\$)?@|%((\d)\$)?d|%((\d)\$)?f)/;
+            const formatSpecifiersExpressionPositional =
+                /(%((\d)\$)?@|%((\d)\$)?d|%((\d)\$)?f)/;
 
             if (formatSpecifiersExpression.test(updatedText)) {
                 let index = 0;
@@ -96,9 +98,8 @@ function webParameterValue(index) {
 }
 
 function escapeForPlatform(text, platform) {
-    const { specialCharacters: platformSpecialCharactersMap } = PlatformConfig[
-        platform
-    ];
+    const { specialCharacters: platformSpecialCharactersMap } =
+        PlatformConfig[platform];
     const platformSpecialCharacters = Object.keys(
         platformSpecialCharactersMap
     ).map((key) => {
