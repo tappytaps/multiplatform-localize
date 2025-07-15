@@ -15,7 +15,7 @@ module.exports = function exportStrings(localizations, language) {
 
     const outputFile = fs.createWriteStream(outputFilePath);
     const exportInput = {
-        localizations,
+        localizations: localizations.sort((a, b) => a.key.localeCompare(b.key)),
         outputFile
     };
 
