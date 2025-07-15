@@ -135,7 +135,7 @@ export WEBLATE_API_KEY="your_api_key"
     - **weblateProjectSlug**: Weblate project slug
     - **weblateComponentSlug**: Weblate component slug
 - **plurals**
-    - **inputFile**: source file with plural strings, the file will be uploaded to Weblate
+    - **sourceFile**: source file with plural strings, the file will be uploaded to Weblate
     - **weblateProjectSlug**: Weblate project slug
     - **weblateComponentSlug**: Weblate component slug
 
