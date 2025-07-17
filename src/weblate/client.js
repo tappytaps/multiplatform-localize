@@ -52,7 +52,8 @@ async function getTranslations(projectSlug, componentSlug, language) {
     const content = await getTranslationsFile(
         projectSlug,
         componentSlug,
-        language
+        language,
+        { format: "strings" }
     );
     return i18nStringsFiles.parse(content);
 }
