@@ -1,63 +1,63 @@
 #!/usr/bin/env node
 
-const program = require("commander");
+const { program } = require("commander");
 
 const commands = require("./src/commands");
 const { version } = require("./package.json");
+const config = require("./src/config");
 
 //
 // Program Definition
 //
 
-program.version(version);
-program.option("-c, --config", "Path to configuration file");
+program
+    .version(version)
+    .option("-c, --config <path>", "Path to configuration file");
+
+const defaultSheets = (config.sheets ?? []).map((sheet) => sheet.name);
 
 program
     .command("generate")
     .alias("gen")
-    .action(runGenerateStrings);
+    .description("Download original string from sheets file.")
+    .action(commands.generateStrings);
 
 program
-    .command("upload")
-    .alias("up")
-    .description("Upload strings to OneSky.")
+    .command("upload-strings")
+    .alias("up-strings")
+    .description("Upload strings to Weblate.")
     .option(
-        "-a, --app-specific-only",
-        "Option to upload only app specific strings",
-        false
+        "-s, --sheet <sheet...>",
+        "Option to select specific sheets to upload",
+        parseSheetOption,
+        defaultSheets
     )
-    .action(runUploadStrings);
+    .action(commands.uploadStrings);
+
+program
+    .command("upload-plurals")
+    .alias("up-plurals")
+    .description("Upload plural strings to Weblate.")
+    .action(commands.uploadPlurals);
 
 program
     .command("download")
     .alias("down")
-    .description("Download translated strings from OneSky")
-    .action(runDownloadStrings);
+    .description("Download translated strings from Weblate")
+    .action(commands.downloadStrings);
 
 program
     .command("check")
-    .description("Compares string on OneSky with strings in xlsx table")
-    .action(runCheckStrings);
+    .description("Compares string on Weblate with strings in xlsx table")
+    .action(commands.checkStrings);
 
 program.parse(process.argv);
 
-//
-// Commands
-//
-
-async function runGenerateStrings() {
-    await commands.generateStrings();
-}
-
-async function runUploadStrings(config) {
-    const options = config.opts();
-    await commands.uploadStrings({ appSpecificOnly: options.appSpecificOnly });
-}
-
-async function runDownloadStrings() {
-    await commands.downloadStrings();
-}
-
-async function runCheckStrings() {
-    await commands.checkStrings();
+function parseSheetOption(value) {
+    if (defaultSheets.includes(value)) {
+        return value;
+    }
+    throw new Error(
+        `Invalid sheet name "${value}". Available options: ${defaultSheets.join(", ")}`
+    );
 }

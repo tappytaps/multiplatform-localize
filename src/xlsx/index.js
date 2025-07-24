@@ -1,4 +1,5 @@
 module.exports = {
     download: require("./download"),
-    parse: require("./parse")
+    read: require("./read"),
+    write: require("./write")
 };

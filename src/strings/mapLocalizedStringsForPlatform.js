@@ -1,24 +1,19 @@
-const oneSky = require("../onesky");
 const conf = require("../config");
 const prepareStringValueForPlatform = require("./prepareStringValueForPlatform");
 
-module.exports = async function getLocalizedStrings(strings, language) {
-    return prepareLocalizedStringsForPlatform(
-        strings,
-        await oneSky.getLocalizedStrings(language)
-    );
-};
-
-function prepareLocalizedStringsForPlatform(strings, localizedStrings) {
+module.exports = function mapLocalizedStringsForPlatform(
+    sheetStrings,
+    localizedStrings
+) {
     return localizedStrings
         .map((localizedString) => {
-            const originalString = strings.find((s) => {
+            const sheetString = sheetStrings.find((s) => {
                 return String(s.id) === String(localizedString.id);
             });
-            if (!originalString) {
+            if (!sheetString) {
                 return null;
             }
-            const { key, isHtml } = originalString;
+            const { key, isHtml } = sheetString;
             return {
                 key,
                 value: prepareStringValueForPlatform(
@@ -31,4 +26,4 @@ function prepareLocalizedStringsForPlatform(strings, localizedStrings) {
         .filter((string) => {
             return string !== null;
         });
-}
+};

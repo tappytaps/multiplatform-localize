@@ -1,14 +1,14 @@
 const fs = require("fs");
 
 const conf = require("../config");
-const strings = require("../strings");
 const files = require("../files");
 const spinner = require("../spinner");
+const ProjectSheet = require("../sheets/ProjectSheet");
 
 module.exports = async function generateStrings() {
-    conf.validate();
-
     try {
+        conf.validate();
+
         await exportStrings();
         await exportPlurals();
     } catch (error) {
@@ -17,29 +17,48 @@ module.exports = async function generateStrings() {
 };
 
 async function exportStrings() {
-    spinner.start("Generating strings");
+    try {
+        spinner.start("Downloading sheets file...");
 
-    files.exportStrings(await strings.getPlatformStrings(), conf.baseLanguage);
+        const projectSheets = await ProjectSheet.downloadSheets();
 
-    spinner.succeed();
+        const platformStrings = projectSheets.reduce(
+            (acc, sheet) => [...acc, ...sheet.getPlatformStrings()],
+            []
+        );
+
+        spinner.succeed();
+
+        spinner.start("Generating strings...");
+
+        files.exportStrings(platformStrings, conf.baseLanguage);
+
+        spinner.succeed();
+    } catch (error) {
+        spinner.fail(error.message);
+    }
 }
 
 async function exportPlurals() {
     if (!conf.hasPlurals()) return;
 
-    spinner.start("Generating plurals");
+    try {
+        spinner.start("Generating plurals...");
 
-    const pluralsPath = conf.getPluralsPath();
-    const pluralsFileName = conf.getPluralsFileName();
-    const pluralsFileContent = fs.readFileSync(pluralsPath, "utf8");
+        const pluralsPath = conf.getPluralsFilePath();
+        const pluralsFileName = conf.getPluralsFileName();
+        const pluralsFileContent = fs.readFileSync(pluralsPath, "utf8");
 
-    if (pluralsFileContent) {
-        await files.exportFile(
-            pluralsFileContent,
-            pluralsFileName,
-            conf.baseLanguage
-        );
+        if (pluralsFileContent) {
+            await files.exportFile(
+                pluralsFileContent,
+                pluralsFileName,
+                conf.baseLanguage
+            );
+        }
+
+        spinner.succeed();
+    } catch (error) {
+        spinner.fail(error.message);
     }
-
-    spinner.succeed();
 }

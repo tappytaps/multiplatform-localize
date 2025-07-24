@@ -1,72 +1,97 @@
-module.exports = function checkForDuplicates(localizations, warningLogger, { checkIds = true, checkKeys = true } = {}) {
+const chalk = require("chalk");
+
+module.exports = function checkForDuplicates(
+    projectSheets,
+    warningLogger,
+    { checkIds = true, checkKeys = true, checkValues = true } = {}
+) {
+    const allStrings = projectSheets.reduce((acc, projectSheet) => {
+        return [...acc, ...projectSheet.getStrings()];
+    }, []);
+
     if (checkIds) {
-        const idsDuplicates = checkIdsDuplicatesInLocalizations(localizations);
-        if (idsDuplicates.length > 0) {
-            throw new Error(`Found id duplicates: ${idsDuplicates.join()}`);
-        }
-    }
-    
-    if (checkKeys) {
-        const keysDuplicates = checkKeysDuplicatesInLocalizations(localizations);
-        if (keysDuplicates.length > 0) {
+        const duplicatedStrings = checkIdsDuplicatesInLocalizations(allStrings);
+        if (duplicatedStrings.length > 0) {
             throw new Error(
-                `Found localization keys duplicates: ${keysDuplicates.join()}`
+                `Found duplicated ids:\n${formatDuplicatedStrings(duplicatedStrings, "id")}`
             );
         }
     }
 
-    const valuesDuplicates = checkValuesDuplicatesInLocalizations(
-        localizations
-    );
-    const stringsWithBothValues = checkBothValues(localizations);
-    
-    if (valuesDuplicates.length > 0 && warningLogger) {
-        warningLogger(
-            `Found localization duplicates: ${valuesDuplicates.join()}`
-        );
+    if (checkKeys) {
+        const platformStrings = projectSheets.reduce((acc, projectSheet) => {
+            return [...acc, ...projectSheet.getPlatformStrings()];
+        }, []);
+        const duplicatedStrings =
+            checkKeysDuplicatesInLocalizations(platformStrings);
+        if (duplicatedStrings.length > 0) {
+            throw new Error(
+                `Found duplicated keys:\n${formatDuplicatedStrings(duplicatedStrings, "key")}`
+            );
+        }
     }
-    if (stringsWithBothValues.length > 0 && warningLogger) {
-        warningLogger(
-            `Found strings with common and app specific values: ${stringsWithBothValues.join()}`
-        );
+
+    if (checkValues) {
+        const duplicatedStrings =
+            checkValuesDuplicatesInLocalizations(allStrings);
+        if (duplicatedStrings.length > 0 && warningLogger) {
+            warningLogger(
+                `Found duplicated strings:\n${formatDuplicatedStrings(duplicatedStrings, "value")}`
+            );
+        }
     }
 };
 
-function checkIdsDuplicatesInLocalizations(localizations) {
-    const localizationIds = localizations.map(
-        (localization) => localization.id
+function formatDuplicatedStrings(duplicatedStrings, highlightedProperty) {
+    return duplicatedStrings.reduce((acc, string) => {
+        var result = `${acc}`;
+        result +=
+            (highlightedProperty === "id"
+                ? chalk.red(string.id)
+                : chalk.gray(string.id)) + chalk.gray(", ");
+        if (string.key) {
+            result +=
+                highlightedProperty === "key"
+                    ? chalk.red(string.key)
+                    : chalk.gray(string.key) + chalk.gray(", ");
+        }
+        result +=
+            highlightedProperty === "value"
+                ? chalk.red(string.value)
+                : chalk.gray(string.value);
+        return `${result}\n`;
+    }, "");
+}
+
+function checkIdsDuplicatesInLocalizations(strings) {
+    return findDuplicates(strings, "id");
+}
+
+function checkKeysDuplicatesInLocalizations(strings) {
+    return findDuplicates(strings, "key");
+}
+
+function checkValuesDuplicatesInLocalizations(strings) {
+    return findDuplicates(
+        strings.filter((string) => !string.allowDuplicates),
+        "value"
     );
-    return duplicates(localizationIds);
 }
 
-function checkKeysDuplicatesInLocalizations(localizations) {
-    const localizationKeys = localizations.map(
-        (localization) => localization.key
-    );
-    return duplicates(localizationKeys);
-}
-
-function checkValuesDuplicatesInLocalizations(localizations) {
-    const localizationValues = localizations
-        .filter((localization) => !localization.allowDuplicates)
-        .map((localization) => localization.value);
-    return duplicates(localizationValues);
-}
-
-function checkBothValues(localizations) {
-    return localizations
-        .filter((localization) => localization.hasBothValues)
-        .map((localization) => localization.id);
-}
-
-function count(values) {
-    return values.reduce(
-        (a, b) => Object.assign(a, { [b]: (a[b] || 0) + 1 }),
+function count(strings, key) {
+    return strings.reduce(
+        (acc, string) =>
+            Object.assign(acc, {
+                [string[key]]: [...(acc[string[key]] || []), string]
+            }),
         {}
     );
 }
 
-function duplicates(values) {
-    const valuesCount = count(values);
-    return Object.keys(valuesCount).filter((a) => valuesCount[a] > 1);
+function findDuplicates(strings, key) {
+    const keysCount = count(strings, key);
+    return Object.keys(keysCount)
+        .map((k) => keysCount[k])
+        .filter((duplicates) => duplicates.length > 1)
+        .flat();
 }
