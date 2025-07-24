@@ -12,7 +12,7 @@ const commonSpecialCharacters = [
         expression: /"/,
         replacement: '\\"'
     },
-    { expression: /\n/, replacement: "\\n" }
+    { expression: /\n+/, replacement: "\\n" }
 ];
 
 const cdataSpecialCharacters = [
