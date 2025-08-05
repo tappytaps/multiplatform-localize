@@ -55,7 +55,7 @@ async function getTranslations(projectSlug, componentSlug, language) {
         language,
         {
             format: "strings",
-            q: "state:>=translated"
+            q: "state:translated"
         }
     );
     return i18nStringsFiles.parse(content);
