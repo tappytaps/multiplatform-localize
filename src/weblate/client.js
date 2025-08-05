@@ -53,7 +53,10 @@ async function getTranslations(projectSlug, componentSlug, language) {
         projectSlug,
         componentSlug,
         language,
-        { format: "strings" }
+        {
+            format: "strings",
+            q: "state:>=translated"
+        }
     );
     return i18nStringsFiles.parse(content);
 }
@@ -93,14 +96,15 @@ async function getTranslationsFile(
     projectSlug,
     componentSlug,
     language,
-    { format } = {}
+    { format, q } = {}
 ) {
     const config = getRequestConfig({
         method: "GET",
         apiPath: `/translations/${projectSlug}/${componentSlug}/${language}/file/`,
         options: {
             params: {
-                format
+                format,
+                q
             }
         }
     });
