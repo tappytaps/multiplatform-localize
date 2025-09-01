@@ -14,24 +14,21 @@ module.exports = async function downloadStrings() {
         const projectSheets = await ProjectSheet.downloadSheets();
 
         spinner.succeed();
-        spinner.start("Getting languages");
 
-        const languages =
-            conf.getSupportedLanguages() ??
-            (await ProjectSheet.getLanguages(projectSheets)).map(
-                (language) => language.code
-            );
-
-        spinner.succeed(`Getting languages: ${languages.join(" ")}`);
-
-        await downloadLocalizedStrings(projectSheets, languages);
-        await downloadLocalizedPlurals(languages);
+        await downloadLocalizedStrings(projectSheets);
+        await downloadLocalizedPlurals();
     } catch (error) {
         spinner.fail(error.message);
     }
 };
 
-async function downloadLocalizedStrings(projectSheets, languages) {
+async function downloadLocalizedStrings(projectSheets) {
+    const languages =
+        conf.getSupportedLanguages() ??
+        (await ProjectSheet.getLanguages(projectSheets)).map(
+            (language) => language.code
+        );
+
     let languageCount = 1;
 
     for (const language of languages) {
@@ -58,8 +55,17 @@ async function downloadLocalizedStrings(projectSheets, languages) {
     spinner.succeed("Downloading localized strings");
 }
 
-async function downloadLocalizedPlurals(languages) {
+async function downloadLocalizedPlurals() {
     if (!conf.hasPlurals()) return;
+
+    const languages =
+        conf.getSupportedLanguages() ??
+        (
+            await weblate.client.getComponentLanguages(
+                conf.plurals.weblateProjectSlug,
+                conf.plurals.weblateComponentSlug
+            )
+        ).map((language) => language.code);
 
     let languageCount = 1;
 

@@ -49,16 +49,10 @@ class ProjectSheet {
     }
 
     async getLanguages() {
-        const translations = await weblateClient.getComponentTranslations(
+        const languages = await weblateClient.getComponentLanguages(
             this.weblateProjectSlug,
             this.weblateComponentSlug
         );
-        const languages = translations.results.map((translation) => {
-            return {
-                code: translation.language.code,
-                name: translation.language.name
-            };
-        });
         return languages;
     }
 

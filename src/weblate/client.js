@@ -11,7 +11,8 @@ module.exports = {
     getTranslations,
     postTranslationsFile,
     getTranslationsFile,
-    getComponentTranslations
+    getComponentTranslations,
+    getComponentLanguages
 };
 
 function getRequestConfig({ method, apiPath, headers = {}, options = {} }) {
@@ -105,7 +106,8 @@ async function getTranslationsFile(
             params: {
                 format,
                 q
-            }
+            },
+            transformResponse: [(data) => data] // Prevent axios from parsing the response as JSON
         }
     });
     try {
@@ -130,4 +132,18 @@ async function getComponentTranslations(projectSlug, componentSlug) {
         console.error(error.response.data);
         throw error;
     }
+}
+
+async function getComponentLanguages(projectSlug, componentSlug) {
+    const translations = await getComponentTranslations(
+        projectSlug,
+        componentSlug
+    );
+    const languages = translations.results.map((translation) => {
+        return {
+            code: translation.language.code,
+            name: translation.language.name
+        };
+    });
+    return languages;
 }

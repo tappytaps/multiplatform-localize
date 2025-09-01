@@ -14,8 +14,12 @@ module.exports = function download(url) {
                 });
                 response.on("end", () => {
                     xlsxBuffer.end();
-                    const parsedXlsx = xlsx.parse(xlsxBuffer.getContents());
-                    resolve(parsedXlsx);
+                    try {
+                        const parsedXlsx = xlsx.parse(xlsxBuffer.getContents());
+                        resolve(parsedXlsx);
+                    } catch (error) {
+                        reject(error);
+                    }
                 });
             })
             .on("error", (error) => {
