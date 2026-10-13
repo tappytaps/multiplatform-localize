@@ -11,7 +11,9 @@ module.exports = {
     getTranslations,
     postTranslationsFile,
     getTranslationsFile,
-    getComponentTranslations
+    getComponentTranslations,
+    getUnits,
+    updateUnitTarget
 };
 
 function getRequestConfig({ method, apiPath, headers = {}, options = {} }) {
@@ -128,6 +130,50 @@ async function getComponentTranslations(projectSlug, componentSlug) {
         return response.data;
     } catch (error) {
         console.error(error.response.data);
+        throw error;
+    }
+}
+
+/**
+ * Returns all translation units matching a Weblate search query.
+ * See https://docs.weblate.org/en/latest/user/search.html
+ */
+async function getUnits(query) {
+    const config = getRequestConfig({ method: "GET", apiPath: "/units/" });
+    let units = [];
+    let url = config.url;
+    let params = { q: query };
+    while (url) {
+        try {
+            const response = await axios({ ...config, url, params });
+            units = units.concat(response.data.results);
+            // the next page URL already contains the query
+            url = response.data.next;
+            params = undefined;
+        } catch (error) {
+            console.error(error.response?.data ?? error.message);
+            throw error;
+        }
+    }
+    return units;
+}
+
+/**
+ * Saves a translation of a unit and marks it as translated.
+ */
+async function updateUnitTarget(unitId, target) {
+    const config = getRequestConfig({
+        method: "PATCH",
+        apiPath: `/units/${unitId}/`,
+        options: {
+            data: { target: [target], state: 20 }
+        }
+    });
+    try {
+        const response = await axios(config);
+        return response.data;
+    } catch (error) {
+        console.error(error.response?.data ?? error.message);
         throw error;
     }
 }

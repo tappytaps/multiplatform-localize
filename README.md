@@ -53,6 +53,36 @@ Check not used strings on Weblate:
 $ stringsgen check
 ```
 
+## Editing translations
+
+Strings are looked up in the sheets by the platform key from the configuration (`columns.key`, e.g. `key_ios`) or by the string id. The Weblate component is the one mapped to the string's sheet in the configuration, so select the app with `--config`.
+
+Show a string with its translations:
+
+```
+$ stringsgen show authentication.accountVerification.message
+$ stringsgen show 2392 --lang cs de --json
+```
+
+List strings that are not translated yet (they are left out of `stringsgen download`):
+
+```
+$ stringsgen missing
+$ stringsgen missing --lang cs --sheet "App specific" --json
+```
+
+Save a translation:
+
+```
+$ stringsgen set authentication.accountVerification.message cs "Zadejte heslo k účtu Bibino <color>%@</color>" --dry-run
+$ stringsgen set 2392 cs "Zadejte heslo k účtu Bibino <color>%@</color>"
+```
+
+- only translations can be changed, the source language is edited in the sheet and uploaded with `stringsgen upload-strings`
+- the string has to be final in the sheet (`isFinal` column), otherwise it is not on Weblate
+- the translation must keep the format specifiers (`%@`, `%1$d`, ...) and tags (`<color>`) of the source, `--force` saves it anyway
+- the translation is saved as translated, download it to the app with `stringsgen download`
+
 # Configuration
 
 You provide your configuration via .stringsgenrc file.
